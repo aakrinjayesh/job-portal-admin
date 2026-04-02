@@ -14,3 +14,14 @@ export async function adminLoginApi(payload) {
     throw error;
   }
 }
+
+// Add this to src/api/adminApi.js
+export async function getAdminStatsApi() {
+  try {
+    const response = await axiosInstance.get("/stats");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    throw error;
+  }
+}

@@ -20,8 +20,8 @@ const AdminLogin = () => {
     try {
       const res = await adminLoginApi(values);
 
-      localStorage.setItem("adminToken", res.data.token);
-      localStorage.setItem("adminInfo", JSON.stringify(res.data.admin));
+     localStorage.setItem("adminToken", res.token);
+     localStorage.setItem("adminInfo", JSON.stringify(res.admin));
 
       navigate("/admin/dashboard");
     } catch (err) {
