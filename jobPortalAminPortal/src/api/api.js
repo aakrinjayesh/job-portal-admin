@@ -25,3 +25,41 @@ export async function getAdminStatsApi() {
     throw error;
   }
 }
+
+// src/api/api.js — add this
+export async function executeQueryApi(query) {
+  try {
+    const response = await axiosInstance.post("/query", { query });
+    return response.data;
+  } catch (error) {
+    console.error("Query error:", error);
+    throw error;
+  }
+}
+
+// Add to src/api/api.js
+export const getOrganizationsApi = (params) =>
+  axiosInstance.get("/organizations", { params });
+
+export const getOrganizationByIdApi = (id) =>
+  axiosInstance.get(`/organizations/${id}`);
+
+export const deleteOrganizationApi = (id) =>
+  axiosInstance.delete(`/organizations/${id}`);
+
+// export const updateSubscriptionStatusApi = (id, status) =>
+//   axiosInstance.patch(`/organizations/${id}/subscription`, { status });
+
+export const removeMemberApi = (memberId) =>
+  axiosInstance.delete(`/organizations/members/${memberId}`);
+
+export async function createUserApi(payload) {
+  try {
+    const response = await axiosInstance.post("/create/user", payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

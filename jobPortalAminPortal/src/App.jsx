@@ -3,6 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin";
 import Dashboard from "./pages/Dashboard";
 import AdminLayout from "./layouts/AdminLayout";
+import QueryManager from "./pages/QueryManager";
+import Organizations from "./pages/Organizations";
+import OrganizationDetails from "./pages/OrganizationDetails";
+import AdminCreateUser from "./pages/AdminCreateUser";
+import PromoCodeManager from "./pages/PromoCodeManager";
+
 
 export default function App() {
   return (
@@ -18,7 +24,35 @@ export default function App() {
               <Dashboard />
             </AdminLayout>
           }
+          
         />
+        <Route path="/admin/query" element={
+  <AdminLayout><QueryManager /></AdminLayout> 
+} />
+
+<Route path="/admin/organizations" element={
+  <AdminLayout><Organizations /></AdminLayout>
+} />
+<Route path="/admin/organizations/:id" element={
+  <AdminLayout><OrganizationDetails /></AdminLayout>
+} />
+
+<Route
+          path="/admin/users"
+          element={
+            <AdminLayout>
+              <AdminCreateUser />
+            </AdminLayout>
+          }
+    />
+    <Route
+          path="/admin/promocode"
+          element={
+            <AdminLayout>
+              <PromoCodeManager />
+            </AdminLayout>
+          }
+    />
       </Routes>
     </BrowserRouter>
   );

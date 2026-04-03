@@ -20,6 +20,7 @@ import {
   MenuOutlined,
   BellOutlined,
   ArrowLeftOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -71,8 +72,10 @@ const AdminLayout = ({ children }) => {
     dashboard: ["/admin/dashboard"],
     users: ["/admin/users"],
     adduser: ["/admin/users/add"],
+    promocode: ["/admin/promocode"],
     organizations: ["/admin/organizations"],
     licenses: ["/admin/licenses"],
+    query: ["/admin/query"],
   };
 
   /* 🎯 Active menu key */
@@ -109,8 +112,10 @@ const AdminLayout = ({ children }) => {
     dashboard: "Dashboard",
     users: "All Users",
     adduser: "Add User",
+    promocode: "Promo Code",
     organizations: "Organizations",
     licenses: "Licenses",
+    query: "SQL Query Manager",
   };
 
   const pageTitle = pageTitleMap[selectedKey] || "Dashboard";
@@ -192,6 +197,7 @@ const AdminLayout = ({ children }) => {
               },
             ],
           },
+           { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
           {
             key: "organizations",
             icon: <BankOutlined />,
@@ -202,6 +208,7 @@ const AdminLayout = ({ children }) => {
             icon: <KeyOutlined />,
             label: "Licenses",
           },
+          { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
         ]}
       />
 
@@ -362,9 +369,10 @@ const AdminLayout = ({ children }) => {
                 { key: "adduser", icon: <UserAddOutlined />, label: "Add User" },
               ],
             },
-             { key: "PromoCode", icon: <BankOutlined />, label: "Manage PromoCodes" },
+             { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
             { key: "organizations", icon: <BankOutlined />, label: "Organizations" },
             { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
+             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" }, 
           ]}
         />
 
