@@ -25,7 +25,7 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import axiosInstance from "../api/axiosInstance.js";
+import { getPromosApi, createPromoApi, togglePromoApi } from "../api/api.js";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -55,7 +55,7 @@ export default function PromoCodeManager() {
   const fetchPromos = async () => {
     setLoading(true);
     try {
-      const res = await axiosInstance.get("/admin/promo/list");
+      const res = await getPromosApi();
       setPromos(res.data.data || []);
     } catch {
       messageApi.error("Failed to load promo codes");
@@ -71,7 +71,7 @@ export default function PromoCodeManager() {
   const handleToggle = async (id) => {
     setToggling(id);
     try {
-      const res = await axiosInstance.patch(`/admin/promo/${id}/toggle`);
+      const res = await togglePromoApi(id);
       setPromos((prev) =>
         prev.map((p) =>
           p.id === id ? { ...p, isActive: res.data.data.isActive } : p,
@@ -94,7 +94,7 @@ export default function PromoCodeManager() {
     setSubmitting(true);
     try {
       const [validFrom, validTo] = values.validity;
-      await axiosInstance.post("/admin/promo/create", {
+      await createPromoApi({
         code: values.code || undefined,
         discountType: values.discountType,
         discountValue: values.discountValue,

@@ -53,6 +53,16 @@ export const deleteOrganizationApi = (id) =>
 export const removeMemberApi = (memberId) =>
   axiosInstance.delete(`/organizations/members/${memberId}`);
 
+// ── Promo Code APIs ──────────────────────────────────────────
+export const getPromosApi = () => axiosInstance.get("/promo/list");
+
+export const createPromoApi = (payload) =>
+  axiosInstance.post("/promo/create", payload);
+
+export const togglePromoApi = (id) =>
+  axiosInstance.patch(`/promo/${id}/toggle`);
+
+// ── Create User ──────────────────────────────────────────────
 export async function createUserApi(payload) {
   try {
     const response = await axiosInstance.post("/create/user", payload, {
