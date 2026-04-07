@@ -39,7 +39,7 @@ export default function App() {
 } />
 
 <Route
-          path="/admin/users"
+          path="/admin/users/add"
           element={
             <AdminLayout>
               <AdminCreateUser />

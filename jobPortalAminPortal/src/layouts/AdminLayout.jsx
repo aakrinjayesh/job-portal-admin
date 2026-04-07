@@ -71,7 +71,7 @@ const AdminLayout = ({ children }) => {
   const menuRoutes = {
     dashboard: ["/admin/dashboard"],
     users: ["/admin/users/search"],
-    adduser: ["/admin/users"],
+    adduser: ["/admin/users/add"],
     promocode: ["/admin/promocode"],
     organizations: ["/admin/organizations"],
     licenses: ["/admin/licenses"],
