@@ -231,6 +231,7 @@ const Dashboard = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
+                gap: 19,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Text
@@ -239,9 +240,9 @@ const Dashboard = () => {
                       fontSize: isMobile ? 10 : 12,
                       display: "block",
                       marginBottom: 4,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
+                      // whiteSpace: "nowrap",
+                      // overflow: "hidden",
+                      // textOverflow: "ellipsis",
                     }}
                   >
                     {card.title}

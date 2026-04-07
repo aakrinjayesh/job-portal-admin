@@ -73,3 +73,32 @@ export async function createUserApi(payload) {
     throw error;
   }
 }
+
+// 🔍 Lookup user by email
+export const lookupUserApi = async (email) => {
+  try {
+    const response = await axiosInstance.get("/users/lookup", {
+      params: { email },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Lookup error:", error);
+    throw error;
+  }
+};
+
+// ❌ Delete user
+export const deleteUserApi = async (userId) => {
+  try {
+    const response = await axiosInstance.delete(`/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete error:", error);
+    throw error;
+  }
+};
+
+export const generateQueryApi = async (prompt) => {
+  const res = await axios.post("/admin/generate-query", { prompt });
+  return res.data; // { status, query }
+};

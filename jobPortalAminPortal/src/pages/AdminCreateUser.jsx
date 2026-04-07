@@ -136,7 +136,7 @@ export default function AdminCreateUser() {
             >
               <Option value="candidate">Candidate</Option>
               <Option value="company">Company</Option>
-              <Option value="admin">Admin</Option>
+              {/* <Option value="admin">Admin</Option> */}
             </Select>
           </Form.Item>
 

@@ -70,8 +70,8 @@ const AdminLayout = ({ children }) => {
   /* 🔗 Menu → Route mapping */
   const menuRoutes = {
     dashboard: ["/admin/dashboard"],
-    users: ["/admin/users"],
-    adduser: ["/admin/users/add"],
+    users: ["/admin/users/search"],
+    adduser: ["/admin/users"],
     promocode: ["/admin/promocode"],
     organizations: ["/admin/organizations"],
     licenses: ["/admin/licenses"],
@@ -110,7 +110,7 @@ const AdminLayout = ({ children }) => {
   /* 🧭 Page title mapping */
   const pageTitleMap = {
     dashboard: "Dashboard",
-    users: "All Users",
+    users: "Delete Users",
     adduser: "Add User",
     promocode: "Promo Code",
     organizations: "Organizations",
@@ -186,14 +186,14 @@ const AdminLayout = ({ children }) => {
             label: "User Management",
             children: [
               {
-                key: "users",
-                icon: <UserOutlined />,
-                label: "All Users",
-              },
-              {
                 key: "adduser",
                 icon: <UserAddOutlined />,
                 label: "Add User",
+              },
+               {
+                key: "users",
+                icon: <UserOutlined />,
+                label: "Delete Users",
               },
             ],
           },
@@ -203,11 +203,11 @@ const AdminLayout = ({ children }) => {
             icon: <BankOutlined />,
             label: "Organizations",
           },
-          {
-            key: "licenses",
-            icon: <KeyOutlined />,
-            label: "Licenses",
-          },
+        //   {
+        //     key: "licenses",
+        //     icon: <KeyOutlined />,
+        //     label: "Licenses",
+        //   },
           { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
         ]}
       />
@@ -365,13 +365,13 @@ const AdminLayout = ({ children }) => {
               icon: <TeamOutlined />,
               label: "User Management",
               children: [
-                { key: "users", icon: <UserOutlined />, label: "All Users" },
                 { key: "adduser", icon: <UserAddOutlined />, label: "Add User" },
+                  { key: "users", icon: <UserOutlined />, label: "Delete User" },
               ],
             },
              { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
             { key: "organizations", icon: <BankOutlined />, label: "Organizations" },
-            { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
+            // { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
              { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" }, 
           ]}
         />

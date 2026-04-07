@@ -8,6 +8,7 @@ import Organizations from "./pages/Organizations";
 import OrganizationDetails from "./pages/OrganizationDetails";
 import AdminCreateUser from "./pages/AdminCreateUser";
 import PromoCodeManager from "./pages/PromoCodeManager";
+import UserLookup from "./pages/Userlookup";
 
 
 export default function App() {
@@ -53,6 +54,13 @@ export default function App() {
             </AdminLayout>
           }
     />
+
+    <Route path="/admin/users/search" element={
+        <AdminLayout>
+          <UserLookup />
+          </AdminLayout>
+        }
+         />
       </Routes>
     </BrowserRouter>
   );
