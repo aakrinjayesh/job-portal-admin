@@ -448,16 +448,6 @@ const AdminLayout = ({ children }) => {
 
           {/* Right */}
           <Space size={16}>
-            <Button
-              shape="circle"
-              icon={<BellOutlined />}
-              style={{
-                background: "#F0F2F4",
-                border: "none",
-                width: 40,
-                height: 40,
-              }}
-            />
             <Avatar
               size={isMobile ? 36 : 44}
               style={{ background: "#1677FF" }}

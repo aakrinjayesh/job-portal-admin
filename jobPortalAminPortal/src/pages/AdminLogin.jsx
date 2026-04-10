@@ -81,11 +81,22 @@ const AdminLogin = () => {
             />
           </Form.Item>
 
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "Please enter your password" }]}
-          >
+        <Form.Item
+  label="Password"
+  name="password"
+  rules={[
+    { required: true, message: "Please enter your password" },
+    {
+      min: 8,
+      message: "Password must be at least 8 characters",
+    },
+    {
+      pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+      message:
+        "Password must include uppercase, lowercase, number, and special character",
+    },
+  ]}
+>
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="Enter your password"

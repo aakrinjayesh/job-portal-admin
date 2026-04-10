@@ -386,17 +386,43 @@ export default function PromoCodeManager() {
           </Form.Item>
 
           {/* Validity */}
-          <Form.Item
-            label="Validity Period"
-            name="validity"
-            rules={[{ required: true, message: "Select validity range" }]}
-          >
-            <RangePicker
-              showTime
-              style={{ width: "100%" }}
-              disabledDate={(d) => d && d < dayjs().startOf("day")}
-            />
-          </Form.Item>
+        <Form.Item
+  label="Validity Period"
+  name="validity"
+  rules={[{ required: true, message: "Select validity range" }]}
+>
+  <RangePicker
+    showTime
+    style={{ width: "100%" }}
+    disabledDate={(current) =>
+      current && current < dayjs().startOf("day")
+    }
+    disabledTime={(current) => {
+      if (!current) return {};
+
+      const now = dayjs();
+
+      // If selected date is today → disable past time
+      if (current.isSame(now, "day")) {
+        return {
+          disabledHours: () =>
+            Array.from({ length: now.hour() }, (_, i) => i),
+          disabledMinutes: (selectedHour) =>
+            selectedHour === now.hour()
+              ? Array.from({ length: now.minute() }, (_, i) => i)
+              : [],
+          disabledSeconds: (selectedHour, selectedMinute) =>
+            selectedHour === now.hour() &&
+            selectedMinute === now.minute()
+              ? Array.from({ length: now.second() }, (_, i) => i)
+              : [],
+        };
+      }
+
+      return {};
+    }}
+  />
+</Form.Item>
 
           {/* Max Usages */}
           <Form.Item
