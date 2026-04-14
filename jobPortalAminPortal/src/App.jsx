@@ -9,6 +9,7 @@ import OrganizationDetails from "./pages/OrganizationDetails";
 import AdminCreateUser from "./pages/AdminCreateUser";
 import PromoCodeManager from "./pages/PromoCodeManager";
 import UserLookup from "./pages/Userlookup";
+import PlanlimitsAdmin from "./pages/PlanlimitsAdmin";
 
 
 export default function App() {
@@ -51,6 +52,14 @@ export default function App() {
           element={
             <AdminLayout>
               <PromoCodeManager />
+            </AdminLayout>
+          }
+    />
+       <Route
+          path="/admin/planlimitsadmin"
+          element={
+            <AdminLayout>
+              <PlanlimitsAdmin />
             </AdminLayout>
           }
     />

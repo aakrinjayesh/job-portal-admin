@@ -102,3 +102,19 @@ export const generateQueryApi = async (prompt) => {
   const res = await axios.post("/admin/generate-query", { prompt });
   return res.data; // { status, query }
 };
+
+// ── Plan Limits ──────────────────────────────────────────────
+export const getPlanLimitsApi = () =>
+  axiosInstance.get("/plan-limits");
+
+export const upsertPlanLimitApi = (payload) =>
+  axiosInstance.post("/plan-limits", payload);
+
+export const bulkUpsertPlanLimitsApi = (planId, limits) =>
+  axiosInstance.post("/plan-limits/bulk", { planId, limits });
+
+export const deletePlanLimitApi = (id) =>
+  axiosInstance.delete(`/plan-limits/${id}`);
+
+export const updatePlanPricingApi = (planId, data) =>
+  axiosInstance.patch(`/plans/${planId}/pricing`, data);

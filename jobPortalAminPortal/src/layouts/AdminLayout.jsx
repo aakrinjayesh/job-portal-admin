@@ -73,6 +73,7 @@ const AdminLayout = ({ children }) => {
     users: ["/admin/users/search"],
     adduser: ["/admin/users/add"],
     promocode: ["/admin/promocode"],
+    planlimits: ["/admin/planlimitsadmin"],
     organizations: ["/admin/organizations"],
     licenses: ["/admin/licenses"],
     query: ["/admin/query"],
@@ -113,6 +114,7 @@ const AdminLayout = ({ children }) => {
     users: "Delete Users",
     adduser: "Add User",
     promocode: "Promo Code",
+    planlimits: "Plan Limits",
     organizations: "Organizations",
     licenses: "Licenses",
     query: "SQL Query Manager",
@@ -198,6 +200,7 @@ const AdminLayout = ({ children }) => {
             ],
           },
            { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
+           { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
           {
             key: "organizations",
             icon: <BankOutlined />,
@@ -370,9 +373,10 @@ const AdminLayout = ({ children }) => {
               ],
             },
              { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
+             { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
             { key: "organizations", icon: <BankOutlined />, label: "Organizations" },
             // { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
-             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" }, 
+             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
           ]}
         />
 
