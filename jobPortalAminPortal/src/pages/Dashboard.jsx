@@ -203,16 +203,20 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <Row gutter={[isMobile ? 8 : 16, isMobile ? 8 : 16]} style={{ marginBottom: isMobile ? 16 : 32 }}>
-        {statCards.map((card) => (
-          <Col
-            xs={12}   // 2 per row on mobile
-            sm={12}   // 2 per row on small
-            md={8}    // 3 per row on medium
-            lg={6}    // 4 per row on large
-            xl={4}    // 5 per row on xl (fits all 5)
-            key={card.key}
-          >
+     <Row
+  gutter={[16, 16]}
+  style={{ marginBottom: isMobile ? 16 : 32 }}
+  justify="space-between"
+>
+  {statCards.map((card) => (
+    <Col
+      key={card.key}
+      style={{
+        flex: "1 1 18%",   // 👈 makes 5 equal cards (100/5 ≈ 20%)
+        maxWidth: "20%",
+        minWidth: isMobile ? "48%" : "180px",
+      }}
+    >
             <Card
               style={{
                 borderRadius: isMobile ? 8 : 12,
