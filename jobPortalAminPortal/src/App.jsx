@@ -10,7 +10,8 @@ import AdminCreateUser from "./pages/AdminCreateUser";
 import PromoCodeManager from "./pages/PromoCodeManager";
 import UserLookup from "./pages/Userlookup";
 import PlanlimitsAdmin from "./pages/PlanlimitsAdmin";
-
+import AddCompany from "./pages/AddCompany";
+import BulkCompanyUpload from "./pages/BulkCompanyUpload";
 
 export default function App() {
   return (
@@ -26,50 +27,83 @@ export default function App() {
               <Dashboard />
             </AdminLayout>
           }
-          
         />
-        <Route path="/admin/query" element={
-  <AdminLayout><QueryManager /></AdminLayout> 
-} />
+        <Route
+          path="/admin/query"
+          element={
+            <AdminLayout>
+              <QueryManager />
+            </AdminLayout>
+          }
+        />
 
-<Route path="/admin/organizations" element={
-  <AdminLayout><Organizations /></AdminLayout>
-} />
-<Route path="/admin/organizations/:id" element={
-  <AdminLayout><OrganizationDetails /></AdminLayout>
-} />
+        <Route
+          path="/admin/organizations"
+          element={
+            <AdminLayout>
+              <Organizations />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/organizations/:id"
+          element={
+            <AdminLayout>
+              <OrganizationDetails />
+            </AdminLayout>
+          }
+        />
 
-<Route
+        <Route
           path="/admin/users/add"
           element={
             <AdminLayout>
               <AdminCreateUser />
             </AdminLayout>
           }
-    />
-    <Route
+        />
+        <Route
           path="/admin/promocode"
           element={
             <AdminLayout>
               <PromoCodeManager />
             </AdminLayout>
           }
-    />
-       <Route
+        />
+        <Route
           path="/admin/planlimitsadmin"
           element={
             <AdminLayout>
               <PlanlimitsAdmin />
             </AdminLayout>
           }
-    />
+        />
 
-    <Route path="/admin/users/search" element={
-        <AdminLayout>
-          <UserLookup />
-          </AdminLayout>
-        }
-         />
+        <Route
+          path="/admin/users/search"
+          element={
+            <AdminLayout>
+              <UserLookup />
+            </AdminLayout>
+          }
+        />
+
+        <Route
+          path="/admin/add-company"
+          element={
+            <AdminLayout>
+              <AddCompany />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/bulk-company"
+          element={
+            <AdminLayout>
+              <BulkCompanyUpload />
+            </AdminLayout>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

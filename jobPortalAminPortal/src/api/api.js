@@ -104,8 +104,7 @@ export const generateQueryApi = async (prompt) => {
 };
 
 // ── Plan Limits ──────────────────────────────────────────────
-export const getPlanLimitsApi = () =>
-  axiosInstance.get("/plan-limits");
+export const getPlanLimitsApi = () => axiosInstance.get("/plan-limits");
 
 export const upsertPlanLimitApi = (payload) =>
   axiosInstance.post("/plan-limits", payload);
@@ -118,3 +117,46 @@ export const deletePlanLimitApi = (id) =>
 
 export const updatePlanPricingApi = (planId, data) =>
   axiosInstance.patch(`/plans/${planId}/pricing`, data);
+
+// ✅ Create Company
+export const createCompanyApi = async (payload) => {
+  try {
+    const response = await axiosInstance.post(
+      "/companies/create", // matches backend route
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Create Company Error:", error);
+    throw error;
+  }
+};
+
+// 🔥 Bulk Upload Companies JSON
+export const uploadCompaniesApi = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosInstance.post(
+      "/companies/upload-json",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Upload error:", error);
+    throw error;
+  }
+};

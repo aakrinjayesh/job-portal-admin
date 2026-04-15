@@ -1,14 +1,6 @@
 // src/components/admin/AdminLayout.jsx
 import React, { useState, useEffect } from "react";
-import {
-  Layout,
-  Menu,
-  Avatar,
-  Typography,
-  Button,
-  Space,
-  Drawer,
-} from "antd";
+import { Layout, Menu, Avatar, Typography, Button, Space, Drawer } from "antd";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -72,6 +64,8 @@ const AdminLayout = ({ children }) => {
     dashboard: ["/admin/dashboard"],
     users: ["/admin/users/search"],
     adduser: ["/admin/users/add"],
+    addcompany: ["/admin/add-company"],
+    bulkcompany: ["/admin/bulk-company"],
     promocode: ["/admin/promocode"],
     planlimits: ["/admin/planlimitsadmin"],
     organizations: ["/admin/organizations"],
@@ -85,7 +79,7 @@ const AdminLayout = ({ children }) => {
     const sortedRoutes = Object.entries(menuRoutes).sort(
       (a, b) =>
         Math.max(...b[1].map((p) => p.length)) -
-        Math.max(...a[1].map((p) => p.length))
+        Math.max(...a[1].map((p) => p.length)),
     );
     for (const [key, paths] of sortedRoutes) {
       if (paths.some((p) => path.startsWith(p))) return key;
@@ -134,10 +128,7 @@ const AdminLayout = ({ children }) => {
           alignItems: "center",
         }}
       >
-        <Avatar
-          size={40}
-          style={{ background: "#1677FF", flexShrink: 0 }}
-        >
+        <Avatar size={40} style={{ background: "#1677FF", flexShrink: 0 }}>
           {admin?.email?.slice(0, 2)?.toUpperCase()}
         </Avatar>
         <div style={{ overflow: "hidden" }}>
@@ -192,25 +183,41 @@ const AdminLayout = ({ children }) => {
                 icon: <UserAddOutlined />,
                 label: "Add User",
               },
-               {
+              {
                 key: "users",
                 icon: <UserOutlined />,
                 label: "Delete Users",
               },
             ],
           },
-           { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
-           { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
+          {
+            key: "promocode",
+            icon: <BankOutlined />,
+            label: "Manage PromoCodes",
+          },
+          { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
+          {
+            key: "company-management",
+            icon: <BankOutlined />,
+            label: "Company Management",
+            children: [
+              {
+                key: "addcompany",
+                label: "Add Company",
+              },
+            ],
+          },
+
           {
             key: "organizations",
             icon: <BankOutlined />,
             label: "Organizations",
           },
-        //   {
-        //     key: "licenses",
-        //     icon: <KeyOutlined />,
-        //     label: "Licenses",
-        //   },
+          //   {
+          //     key: "licenses",
+          //     icon: <KeyOutlined />,
+          //     label: "Licenses",
+          //   },
           { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
         ]}
       />
@@ -249,7 +256,9 @@ const AdminLayout = ({ children }) => {
       {/* 🧭 Sidebar — Desktop */}
       <Sider
         collapsed={isMobile ? true : collapsed}
-        onCollapse={(val) => { if (!isMobile) setCollapsed(val); }}
+        onCollapse={(val) => {
+          if (!isMobile) setCollapsed(val);
+        }}
         width={260}
         collapsedWidth={60}
         style={{
@@ -293,11 +302,23 @@ const AdminLayout = ({ children }) => {
           >
             {collapsed ? (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                <path d="M9 18l6-6-6-6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M9 18l6-6-6-6"
+                  stroke="#fff"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             ) : (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M15 18l-6-6 6-6"
+                  stroke="#fff"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             )}
           </div>
@@ -310,10 +331,16 @@ const AdminLayout = ({ children }) => {
             gap: collapsed ? 0 : 12,
             padding: isMobile ? "20px 10px" : collapsed ? "24px 0" : 24,
             alignItems: "center",
-            justifyContent: isMobile ? "center" : collapsed ? "center" : "flex-start",
+            justifyContent: isMobile
+              ? "center"
+              : collapsed
+                ? "center"
+                : "flex-start",
             cursor: isMobile ? "pointer" : "default",
           }}
-          onClick={() => { if (isMobile) setMobileDrawerOpen(true); }}
+          onClick={() => {
+            if (isMobile) setMobileDrawerOpen(true);
+          }}
         >
           <Avatar size={36} style={{ background: "#1677FF", flexShrink: 0 }}>
             {admin?.email?.slice(0, 2)?.toUpperCase()}
@@ -343,7 +370,13 @@ const AdminLayout = ({ children }) => {
 
         {/* Mobile hamburger */}
         {isMobile && (
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: 8,
+            }}
+          >
             <Button
               type="text"
               icon={<MenuOutlined style={{ color: "#fff", fontSize: 16 }} />}
@@ -362,26 +395,65 @@ const AdminLayout = ({ children }) => {
           inlineCollapsed={isMobile ? true : collapsed}
           style={{ background: "transparent", border: "none" }}
           items={[
-            { key: "dashboard", icon: <DashboardOutlined />, label: "Dashboard" },
+            {
+              key: "dashboard",
+              icon: <DashboardOutlined />,
+              label: "Dashboard",
+            },
             {
               key: "usermgmt",
               icon: <TeamOutlined />,
               label: "User Management",
               children: [
-                { key: "adduser", icon: <UserAddOutlined />, label: "Add User" },
-                  { key: "users", icon: <UserOutlined />, label: "Delete User" },
+                {
+                  key: "adduser",
+                  icon: <UserAddOutlined />,
+                  label: "Add User",
+                },
+                { key: "users", icon: <UserOutlined />, label: "Delete User" },
               ],
             },
-             { key: "promocode", icon: <BankOutlined />, label: "Manage PromoCodes" },
-             { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
-            { key: "organizations", icon: <BankOutlined />, label: "Organizations" },
+            {
+              key: "promocode",
+              icon: <BankOutlined />,
+              label: "Manage PromoCodes",
+            },
+            { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
+            {
+              key: "organizations",
+              icon: <BankOutlined />,
+              label: "Organizations",
+            },
+            {
+              key: "company-management",
+              icon: <BankOutlined />,
+              label: "Company Management",
+              children: [
+                {
+                  key: "addcompany",
+                  label: "Add Company",
+                },
+                {
+                  key: "bulkcompany",
+                  label: "+ More Companies",
+                },
+              ],
+            },
+
             // { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
-             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
+            { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
           ]}
         />
 
         {/* Divider */}
-        <div style={{ height: 1, background: "#E0E0E0", margin: "16px 0", opacity: 0.3 }} />
+        <div
+          style={{
+            height: 1,
+            background: "#E0E0E0",
+            margin: "16px 0",
+            opacity: 0.3,
+          }}
+        />
 
         {/* Bottom Menu */}
         <Menu
@@ -392,7 +464,12 @@ const AdminLayout = ({ children }) => {
           inlineCollapsed={isMobile ? true : collapsed}
           style={{ background: "transparent", border: "none" }}
           items={[
-            { key: "logout", icon: <LogoutOutlined />, label: "Logout", danger: true },
+            {
+              key: "logout",
+              icon: <LogoutOutlined />,
+              label: "Logout",
+              danger: true,
+            },
           ]}
         />
       </Sider>
@@ -452,10 +529,7 @@ const AdminLayout = ({ children }) => {
 
           {/* Right */}
           <Space size={16}>
-            <Avatar
-              size={isMobile ? 36 : 44}
-              style={{ background: "#1677FF" }}
-            >
+            <Avatar size={isMobile ? 36 : 44} style={{ background: "#1677FF" }}>
               {admin?.email?.slice(0, 2)?.toUpperCase()}
             </Avatar>
             {!isMobile && (
