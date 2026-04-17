@@ -12,6 +12,7 @@ import UserLookup from "./pages/Userlookup";
 import PlanlimitsAdmin from "./pages/PlanlimitsAdmin";
 import AddCompany from "./pages/AddCompany";
 import BulkCompanyUpload from "./pages/BulkCompanyUpload";
+import AdminPostjob from "./pages/AdminPostjob";
 
 export default function App() {
   return (
@@ -62,6 +63,14 @@ export default function App() {
             </AdminLayout>
           }
         />
+        <Route
+          path="/admin/postjob"
+          element={
+            <AdminLayout>
+              <AdminPostjob />
+            </AdminLayout>
+          }
+    />
         <Route
           path="/admin/promocode"
           element={

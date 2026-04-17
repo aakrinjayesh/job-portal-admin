@@ -47,6 +47,9 @@ export const getOrganizationByIdApi = (id) =>
 export const deleteOrganizationApi = (id) =>
   axiosInstance.delete(`/organizations/${id}`);
 
+export const adminPostJobApi = (data) =>
+  axiosInstance.post("/jobs", data);
+
 // export const updateSubscriptionStatusApi = (id, status) =>
 //   axiosInstance.patch(`/organizations/${id}/subscription`, { status });
 

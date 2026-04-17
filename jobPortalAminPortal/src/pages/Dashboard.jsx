@@ -189,6 +189,10 @@ const Dashboard = () => {
     },
   ];
 
+  const companyUsers = recentUsers.filter(
+  (user) => user.role === "company"
+);
+
   return (
     <div style={{ padding: isMobile ? "4px 0" : "8px 0" }}>
 
@@ -301,14 +305,14 @@ const Dashboard = () => {
           body: { padding: isMobile ? "0 0 8px 0" : "24px" },
         }}
       >
-        <Table
-          dataSource={recentUsers}
-          columns={isMobile ? mobileColumns : desktopColumns}
-          rowKey="id"
-          pagination={false}
-          size={isMobile ? "small" : "middle"}
-          scroll={isMobile ? {} : { x: 600 }}
-        />
+      <Table
+  dataSource={companyUsers}
+  columns={isMobile ? mobileColumns : desktopColumns}
+  rowKey="id"
+  pagination={false}
+  size={isMobile ? "small" : "middle"}
+  scroll={isMobile ? {} : { x: 600 }}
+/>
       </Card>
     </div>
   );

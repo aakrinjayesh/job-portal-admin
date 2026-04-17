@@ -66,6 +66,7 @@ const AdminLayout = ({ children }) => {
     adduser: ["/admin/users/add"],
     addcompany: ["/admin/add-company"],
     bulkcompany: ["/admin/bulk-company"],
+    adminjobpost: ["/admin/postjob"],
     promocode: ["/admin/promocode"],
     planlimits: ["/admin/planlimitsadmin"],
     organizations: ["/admin/organizations"],
@@ -107,6 +108,7 @@ const AdminLayout = ({ children }) => {
     dashboard: "Dashboard",
     users: "Delete Users",
     adduser: "Add User",
+    adminjobpost: "Admin Job Post",
     promocode: "Promo Code",
     planlimits: "Plan Limits",
     organizations: "Organizations",
@@ -190,6 +192,7 @@ const AdminLayout = ({ children }) => {
               },
             ],
           },
+          {key: "adminjobpost",icon: <BankOutlined />, label: "Admin Job Post"},
           {
             key: "promocode",
             icon: <BankOutlined />,
@@ -413,6 +416,7 @@ const AdminLayout = ({ children }) => {
                 { key: "users", icon: <UserOutlined />, label: "Delete User" },
               ],
             },
+              {key: "adminjobpost",icon: <BankOutlined />, label: "Admin Job Post"},
             {
               key: "promocode",
               icon: <BankOutlined />,

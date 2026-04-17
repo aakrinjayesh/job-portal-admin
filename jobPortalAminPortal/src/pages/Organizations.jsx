@@ -156,14 +156,14 @@ export default function Organizations() {
               onClick={() => navigate(`/admin/organizations/${record.id}`)}
             />
           </Tooltip>
-          <Tooltip title="Delete">
+          {/* <Tooltip title="Delete">
             <Button
               danger
               size="small"
               icon={<DeleteOutlined />}
               onClick={() => handleDelete(record.id, record.name)}
             />
-          </Tooltip>
+          </Tooltip> */}
         </Space>
       ),
     },
