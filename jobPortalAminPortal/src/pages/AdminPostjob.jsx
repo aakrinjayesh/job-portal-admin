@@ -478,10 +478,19 @@ console.log("Submitting payload:", payload);
               <Label required>Employment Type</Label>
               <Select value={form.employmentType} onChange={set("employmentType")} placeholder="Select…" options={EMPLOYMENT_TYPES} />
             </Field>
-            <Field>
-              <Label required>Job Type</Label>
-              <Select value={form.jobType} onChange={set("jobType")} placeholder="Select…" options={JOB_TYPES} />
-            </Field>
+           <Field>
+  <Label required>Job Type</Label>
+  <Select
+    value={form.jobType}
+    onChange={v => setForm(f => ({
+      ...f,
+      jobType: v,
+      location: v === "Remote" ? "" : f.location,  // ← clears on Remote
+    }))}
+    placeholder="Select…"
+    options={JOB_TYPES}
+  />
+</Field>
             <Field>
               <Label>Experience Level</Label>
               <Select value={form.experienceLevel} onChange={set("experienceLevel")} placeholder="Select…" options={EXPERIENCE_LEVELS} />
@@ -528,16 +537,19 @@ console.log("Submitting payload:", payload);
           </div>
 
           <div style={{ marginTop: 16 }}>
-            <Grid cols={2}>
-              <Field>
-                <Label>Location</Label>
-                <Input value={form.location} onChange={set("location")} placeholder="e.g. Mumbai, India" />
-              </Field>
-              <Field>
-                <Label>Applicant Source</Label>
-                <Select value={form.applicantSource} onChange={set("applicantSource")} options={APPLICANT_SOURCES} />
-              </Field>
-            </Grid>
+         <Grid cols={2}>
+  {/* Hide location when Remote is selected */}
+  {form.jobType !== "Remote" && (
+    <Field>
+      <Label>Location</Label>
+      <Input value={form.location} onChange={set("location")} placeholder="e.g. Mumbai, India" />
+    </Field>
+  )}
+  <Field>
+    <Label>Applicant Source</Label>
+    <Select value={form.applicantSource} onChange={set("applicantSource")} options={APPLICANT_SOURCES} />
+  </Field>
+</Grid>
           </div>
         </SectionCard>
 

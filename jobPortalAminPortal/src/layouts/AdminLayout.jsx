@@ -3,7 +3,11 @@ import React, { useState, useEffect } from "react";
 import { Layout, Menu, Avatar, Typography, Button, Space, Drawer } from "antd";
 import {
   DashboardOutlined,
+  FileTextOutlined,
+  ControlOutlined,
   UserOutlined,
+  GiftOutlined,
+  BuildOutlined,
   UserAddOutlined,
   TeamOutlined,
   BankOutlined,
@@ -192,16 +196,16 @@ const AdminLayout = ({ children }) => {
               },
             ],
           },
-          {key: "adminjobpost",icon: <BankOutlined />, label: "Admin Job Post"},
+          {key: "adminjobpost", icon: <FileTextOutlined />, label: "Admin Job Post"},
           {
             key: "promocode",
-            icon: <BankOutlined />,
+            icon: <GiftOutlined />,
             label: "Manage PromoCodes",
           },
-          { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
+          { key: "planlimits", icon: <ControlOutlined />, label: "Plan Limits" },
           {
             key: "company-management",
-            icon: <BankOutlined />,
+            icon: <BuildOutlined />,
             label: "Company Management",
             children: [
               {
@@ -416,13 +420,13 @@ const AdminLayout = ({ children }) => {
                 { key: "users", icon: <UserOutlined />, label: "Delete User" },
               ],
             },
-              {key: "adminjobpost",icon: <BankOutlined />, label: "Admin Job Post"},
+              {key: "adminjobpost",icon: <FileTextOutlined />, label: "Admin Job Post"},
             {
               key: "promocode",
-              icon: <BankOutlined />,
+              icon: <GiftOutlined />,
               label: "Manage PromoCodes",
             },
-            { key: "planlimits", icon: <BankOutlined />, label: "Plan Limits" },
+            { key: "planlimits", icon: <ControlOutlined />, label: "Plan Limits" },
             {
               key: "organizations",
               icon: <BankOutlined />,
@@ -430,7 +434,7 @@ const AdminLayout = ({ children }) => {
             },
             {
               key: "company-management",
-              icon: <BankOutlined />,
+              icon: <BuildOutlined  />,
               label: "Company Management",
               children: [
                 {
