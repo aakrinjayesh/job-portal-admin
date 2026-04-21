@@ -240,6 +240,8 @@ export default function AdminPostjob() {
   const [saving, setSaving]               = useState(false);
   const [toast, setToast]                 = useState(null);
   const [orgDisplayName, setOrgDisplayName] = useState("");
+  const [logoError, setLogoError] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
 
   // Load organizations for the dropdown
  useEffect(() => {
@@ -351,11 +353,44 @@ console.log("Submitting payload:", payload);
     }
   };
 
-  const handleReset = () => {
-    setForm(EMPTY_FORM);
-    setOrgMembers([]);
-    setOrgDisplayName("");
+ const handleReset = () => {
+  setForm(EMPTY_FORM);
+  setOrgMembers([]);
+  setOrgDisplayName("");
+  setLogoPreview("");   
+  setLogoError("");    
+};
+
+  
+
+const handleLogoUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  if (!allowedTypes.includes(file.type)) {
+    setLogoError("Only JPG and PNG files are allowed");
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    setLogoError("File size exceeds 2MB");
+    return;
+  }
+
+  setLogoError("");
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    setLogoPreview(ev.target.result);
+    setForm(f => ({ ...f, companyLogo: ev.target.result }));
   };
+  reader.readAsDataURL(file);
+};
+
+const handleLogoRemove = () => {
+  setLogoPreview("");
+  setLogoError("");
+  setForm(f => ({ ...f, companyLogo: "" }));
+};
 
   return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", minHeight: "100vh", background: "#F8FAFC", color: "#111827" }}>
@@ -580,10 +615,47 @@ console.log("Submitting payload:", payload);
               <Label>Application Limit</Label>
               <Input type="number" value={form.ApplicationLimit} onChange={set("ApplicationLimit")} placeholder="e.g. 100" />
             </Field>
-            <Field>
-              <Label>Company Logo URL</Label>
-              <Input value={form.companyLogo} onChange={set("companyLogo")} placeholder="https://…" />
-            </Field>
+           <Field>
+  <Label>Company Logo</Label>
+  {logoPreview ? (
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <img
+        src={logoPreview}
+        alt="Company Logo"
+        style={{ width: 60, height: 60, borderRadius: 8, border: "1px solid #E5E7EB", objectFit: "cover" }}
+      />
+      <button
+        onClick={handleLogoRemove}
+        style={{ fontSize: 12, fontWeight: 500, padding: "5px 12px", border: "1px solid #FCA5A5", borderRadius: 6, background: "#FEF2F2", color: "#991B1B", cursor: "pointer" }}
+      >
+        Remove
+      </button>
+    </div>
+  ) : (
+    <>
+      <label
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "7px 14px", fontSize: 13, fontWeight: 500,
+          border: "1px solid #E5E7EB", borderRadius: 8,
+          background: "#F9FAFB", color: "#374151", cursor: "pointer",
+        }}
+      >
+        ↑ Upload Logo
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/jpg"
+          onChange={handleLogoUpload}
+          style={{ display: "none" }}
+        />
+      </label>
+      <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>JPG or PNG, max 2MB</div>
+    </>
+  )}
+  {logoError && (
+    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>{logoError}</div>
+  )}
+</Field>
           </Grid>
         </SectionCard>
 

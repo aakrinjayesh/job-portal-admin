@@ -66,14 +66,22 @@ const AdminLogin = () => {
 
         {/* Form */}
         <Form layout="vertical" onFinish={onFinish}>
-          <Form.Item
-            label="Email Address"
-            name="email"
-            rules={[
-              { required: true, message: "Please enter your email" },
-              { type: "email", message: "Enter a valid email" },
-            ]}
-          >
+         <Form.Item
+  label="Email Address"
+  name="email"
+  rules={[
+    { required: true, message: "Please enter your email" },
+    { type: "email", message: "Enter a valid email" },
+    {
+      validator: (_, value) => {
+        if (!value) return Promise.resolve();
+        const domain = value.split("@")[1]?.toLowerCase();
+        if (domain === "aakrin.com") return Promise.resolve();
+        return Promise.reject("This email addresses are not allowed");
+      },
+    },
+  ]}
+>
             <Input
               prefix={<UserOutlined />}
               placeholder="admin@yourcompany.com"
