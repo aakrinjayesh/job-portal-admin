@@ -635,14 +635,20 @@ export default function UserLookup() {
           <div className="ul-search-card">
             <label className="ul-search-label">Email address</label>
             <div className="ul-search-row">
-              <input
-                type="email"
-                className="ul-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="user@example.com"
-              />
+           <input
+  type="email"
+  className="ul-input"
+  value={email}
+  onChange={(e) => {
+    setEmail(e.target.value);
+    if (!e.target.value.trim()) {
+      setError(null);      // ← clear error when input is empty
+      setDeleted(null);    // ← clear success too
+    }
+  }}
+  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+  placeholder="user@example.com"
+/>
               <button
                 className="ul-search-btn"
                 onClick={handleSearch}
