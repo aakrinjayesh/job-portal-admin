@@ -120,7 +120,7 @@ const AdminLogin = () => {
               loading={loading}
               style={{ height: "40px", borderRadius: 6 }}
             >
-              Sign In
+              Login
             </Button>
           </Form.Item>
         </Form>
