@@ -611,10 +611,24 @@ const handleLogoRemove = () => {
               <Label>Application Deadline</Label>
               <Input type="date" value={form.applicationDeadline} onChange={set("applicationDeadline")} />
             </Field>
-            <Field>
-              <Label>Application Limit</Label>
-              <Input type="number" value={form.ApplicationLimit} onChange={set("ApplicationLimit")} placeholder="e.g. 100" />
-            </Field>
+           <Field>
+  <Label>Application Limit</Label>
+  <Input
+    type="number"
+    value={form.ApplicationLimit}
+    onChange={v => {
+      if (v === "" || (Number(v) >= 1 && Number(v) <= 500)) {
+        set("ApplicationLimit")(v);
+      }
+    }}
+    placeholder="e.g. 100 (max 500)"
+  />
+  {form.ApplicationLimit && Number(form.ApplicationLimit) > 500 && (
+    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+      Maximum limit is 500
+    </div>
+  )}
+</Field>
            <Field>
   <Label>Company Logo</Label>
   {logoPreview ? (
