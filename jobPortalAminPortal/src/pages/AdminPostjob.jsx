@@ -202,8 +202,8 @@ function Grid({ cols = 2, children }) {
   );
 }
 
-function Field({ children }) {
-  return <div style={{ marginBottom: 0 }}>{children}</div>;
+function Field({ children, style }) {
+  return <div style={{ marginBottom: 0, ...style }}>{children}</div>;
 }
 
 const EMPTY_FORM = {
@@ -215,7 +215,7 @@ const EMPTY_FORM = {
   description: "",
   employmentType: "",
   experienceLevel: "",
-  experience: { min: "", max: "" },
+  experience: { min: "", max: "", type: "year" },
   tenure: { number: "", type: "month" },
   location: "",
   skills: [],
@@ -242,6 +242,7 @@ export default function AdminPostjob() {
   const [orgDisplayName, setOrgDisplayName] = useState("");
   const [logoError, setLogoError] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
+  const [isExperienceRange, setIsExperienceRange] = useState(false);
 
   // Load organizations for the dropdown
  useEffect(() => {
@@ -556,18 +557,93 @@ const handleLogoRemove = () => {
 
           <div style={{ marginTop: 16 }}>
             <Grid cols={2}>
-              <Field>
-                <Label>Experience Range</Label>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <Input type="number" value={form.experience.min} onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, min: v } }))} placeholder="Min yrs" />
-                  <span style={{ color: "#9CA3AF", fontSize: 13 }}>–</span>
-                  <Input type="number" value={form.experience.max} onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, max: v } }))} placeholder="Max yrs" />
-                </div>
-              </Field>
-              <Field>
-                <Label required>Salary</Label>
-                <Input value={form.salary} onChange={set("salary")} placeholder="e.g. 10-15 LPA or ₹80K/mo" />
-              </Field>
+            {/* Add this state at the top with your other states */}
+{/* const [isExperienceRange, setIsExperienceRange] = useState(false); */}
+
+<Field>
+  <div style={{ marginBottom: 6 }}>
+    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", letterSpacing: "0.01em", marginBottom: 4 }}>
+      Experience
+    </div>
+    <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6B7280", cursor: "pointer", fontWeight: 400 }}>
+      <input
+        type="checkbox"
+        checked={isExperienceRange}
+        onChange={e => {
+          setIsExperienceRange(e.target.checked);
+          setForm(f => ({ ...f, experience: { min: "", max: "", type: "year" } }));
+        }}
+        style={{ cursor: "pointer", accentColor: "#111827" }}
+      />
+      Use Experience Range
+    </label>
+  </div>
+  {!isExperienceRange ? (
+    <div style={{ display: "flex", gap: 8 }}>
+      <Input
+        type="number"
+        value={form.experience.min}
+        onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, min: v } }))}
+        placeholder="e.g. 3 or 5.5"
+      />
+      <select
+        value={form.experience.type || "year"}
+        onChange={e => setForm(f => ({ ...f, experience: { ...f.experience, type: e.target.value } }))}
+        style={{ padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
+      >
+        <option value="year">Years</option>
+        <option value="month">Months</option>
+      </select>
+    </div>
+  ) : (
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <Input
+        type="number"
+        value={form.experience.min}
+        onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, min: v } }))}
+        placeholder="Min"
+      />
+      <span style={{ color: "#9CA3AF", fontSize: 13 }}>–</span>
+      <Input
+        type="number"
+        value={form.experience.max}
+        onChange={v => {
+          if (Number(v) < Number(form.experience.min)) return;
+          setForm(f => ({ ...f, experience: { ...f.experience, max: v } }));
+        }}
+        placeholder="Max"
+      />
+      <select
+        value={form.experience.type || "year"}
+        onChange={e => setForm(f => ({ ...f, experience: { ...f.experience, type: e.target.value } }))}
+        style={{ padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
+      >
+        <option value="year">Years</option>
+        <option value="month">Months</option>
+      </select>
+    </div>
+  )}
+
+  {isExperienceRange && form.experience.max && form.experience.min &&
+    Number(form.experience.max) < Number(form.experience.min) && (
+    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+      Max must be greater than Min
+    </div>
+  )}
+</Field>
+    <Field style={{ marginTop: 22 }}>
+  <Label required>Salary</Label>
+  <Input
+    value={form.salary}
+    onChange={v => set("salary")(v.slice(0, 10))}
+    placeholder="e.g. 10-15 LPA or ₹80K/mo (max 10 chars)"
+  />
+  {form.salary.length === 10 && (
+    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 6 }}>
+      Maximum 10 characters allowed
+    </div>
+  )}
+</Field>
             </Grid>
           </div>
 
