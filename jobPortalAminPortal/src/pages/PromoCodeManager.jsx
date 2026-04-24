@@ -468,36 +468,41 @@ const handleEdit = async (values) => {
   rules={[{ required: true, message: "Select validity range" }]}
 >
   <RangePicker
-    showTime
-    style={{ width: "100%" }}
-    disabledDate={(current) =>
-      current && current < dayjs().startOf("day")
-    }
-    disabledTime={(current) => {
-      if (!current) return {};
+  showTime
+  style={{ width: "100%" }}
+  disabledDate={(current) =>
+    current && current < dayjs().startOf("day")
+  }
+  disabledTime={(current, type) => {
+    if (!current) return {};
 
-      const now = dayjs();
+    const now = dayjs();
 
-      // If selected date is today → disable past time
-      if (current.isSame(now, "day")) {
-        return {
-          disabledHours: () =>
-            Array.from({ length: now.hour() }, (_, i) => i),
-          disabledMinutes: (selectedHour) =>
-            selectedHour === now.hour()
-              ? Array.from({ length: now.minute() }, (_, i) => i)
-              : [],
-          disabledSeconds: (selectedHour, selectedMinute) =>
-            selectedHour === now.hour() &&
-            selectedMinute === now.minute()
-              ? Array.from({ length: now.second() }, (_, i) => i)
-              : [],
-        };
-      }
+    // Only restrict if selected date is today
+    if (!current.isSame(now, "day")) return {};
 
-      return {};
-    }}
-  />
+    const currentHour = now.hour();
+    const currentMinute = now.minute();
+    const currentSecond = now.second();
+
+    return {
+      disabledHours: () =>
+        Array.from({ length: currentHour }, (_, i) => i),
+
+      disabledMinutes: (selectedHour) => {
+        if (selectedHour !== currentHour) return [];
+        return Array.from({ length: currentMinute }, (_, i) => i);
+      },
+
+      disabledSeconds: (selectedHour, selectedMinute) => {
+        if (selectedHour !== currentHour || selectedMinute !== currentMinute)
+          return [];
+        // +1 so current second itself is also disabled
+        return Array.from({ length: currentSecond + 1 }, (_, i) => i);
+      },
+    };
+  }}
+/>
 </Form.Item>
 
           {/* Max Usages */}
