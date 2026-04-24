@@ -161,79 +161,106 @@ export default function AddCompany() {
       <Form form={form} layout="vertical">
         {/* 🔹 ORGANIZATION */}
         <Card title="Organization Details" style={{ marginBottom: 20 }}>
-          <Form.Item
-            name="organizationName"
-            label="Organization Name"
-            rules={[{ required: true }]}
-          >
-            <Input placeholder="Google" />
-          </Form.Item>
+         <Form.Item
+  name="organizationName"
+  label="Organization Name"
+  rules={[
+    { required: true },
+    { max: 30, message: "Max 30 characters allowed" },
+  ]}
+>
+  <Input placeholder="Google" maxLength={30} showCount />
+</Form.Item>
 
-          <Form.Item name="domain" label="Domain" rules={[{ required: true }]}>
-            <Input placeholder="google.com" />
-          </Form.Item>
+<Form.Item
+  name="domain"
+  label="Domain"
+  rules={[
+    { required: true },
+    { max: 30, message: "Max 30 characters allowed" },
+  ]}
+>
+  <Input placeholder="google.com" maxLength={30} showCount/>
+</Form.Item>
         </Card>
 
         {/* 🔹 OVERVIEW */}
         <Card title="Company Overview" style={{ marginBottom: 20 }}>
-          <Form.Item name="companyName" label="Company Name">
-            <Input />
-          </Form.Item>
+         <Form.Item
+  name="companyName"
+  label="Company Name"
+  rules={[{ max: 50, message: "Max 50 characters allowed" }]}
+>
+  <Input maxLength={50} showCount/>
+</Form.Item>
 
-          <Form.Item name="slug" label="Slug">
-            <Input />
-          </Form.Item>
+<Form.Item
+  name="slug"
+  label="Slug"
+  rules={[
+    { max: 50, message: "Max 50 characters allowed" },
+    {
+      pattern: /^[a-z0-9-]+$/,
+      message: "Only lowercase letters, numbers and hyphens allowed",
+    },
+  ]}
+>
+  <Input maxLength={50} />
+</Form.Item>
 
-          <Form.Item name="tagline" label="Tagline">
-            <Input />
-          </Form.Item>
+<Form.Item
+  name="tagline"
+  label="Tagline"
+  rules={[{ max: 120, message: "Max 120 characters allowed" }]}
+>
+  <Input maxLength={120} showCount />
+</Form.Item>
 
-          <Form.Item name="description" label="Description">
-            <TextArea rows={4} />
-          </Form.Item>
+<Form.Item
+  name="description"
+  label="Description"
+  rules={[{ max: 1000, message: "Max 2000 characters allowed" }]}
+>
+  <TextArea rows={4} maxLength={1000} showCount />
+</Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="website"
-                label="Website"
-                rules={[
-                  {
-                    pattern:
-                      /^https:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}.*$/,
-                    message: "Please enter a valid HTTPS website URL",
-                  },
-                ]}
-              >
-                <Input placeholder="https://example.com" />
-              </Form.Item>
-            </Col>
+<Form.Item
+  name="website"
+  label="Website"
+  rules={[
+    {
+      pattern: /^https:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}.*$/,
+      message: "Please enter a valid HTTPS website URL",
+    },
+    { max: 200, message: "Max 200 characters allowed" },
+  ]}
+>
+  <Input placeholder="https://example.com" maxLength={200} />
+</Form.Item>
 
-            <Col span={12}>
-              <Form.Item name="headquarters" label="Headquarters">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
+<Form.Item
+  name="headquarters"
+  label="Headquarters"
+  rules={[{ max: 120, message: "Max 120 characters allowed" }]}
+>
+  <Input maxLength={120} />
+</Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="companySize" label="Company Size">
-                <Select>
-                  <Option value="1-10">1-10</Option>
-                  <Option value="11-50">11-50</Option>
-                  <Option value="51-200">51-200</Option>
-                  <Option value="200+">200+</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col span={12}>
-              <Form.Item name="foundedYear" label="Founded Year">
-                <InputNumber style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-          </Row>
+<Form.Item
+  name="foundedYear"
+  label="Founded Year"
+  rules={[
+    {
+      type: "number",
+      min: 1900,
+      max: new Date().getFullYear(),
+      message: "Enter a valid year",
+    },
+  ]}
+>
+  <InputNumber style={{ width: "100%" }} />
+</Form.Item>
+          
         </Card>
 
         {/* 🔹 TAG SECTIONS */}
