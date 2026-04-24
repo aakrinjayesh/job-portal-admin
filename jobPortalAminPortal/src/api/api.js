@@ -62,6 +62,9 @@ export const getPromosApi = () => axiosInstance.get("/promo/list");
 export const createPromoApi = (payload) =>
   axiosInstance.post("/promo/create", payload);
 
+export const editPromoApi = (id, data) =>
+ axiosInstance.patch(`/promo/${id}`, data);
+
 export const togglePromoApi = (id) =>
   axiosInstance.patch(`/promo/${id}/toggle`);
 

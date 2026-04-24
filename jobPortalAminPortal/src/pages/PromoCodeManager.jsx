@@ -22,10 +22,11 @@ import {
   CopyOutlined,
   CheckOutlined,
   ReloadOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { getPromosApi, createPromoApi, togglePromoApi } from "../api/api.js";
+import { getPromosApi, createPromoApi, togglePromoApi, editPromoApi} from "../api/api.js";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -51,6 +52,9 @@ export default function PromoCodeManager() {
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [form] = Form.useForm();
+  const [editingPromo, setEditingPromo] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editForm] = Form.useForm();
 
   const fetchPromos = async () => {
     setLoading(true);
@@ -67,6 +71,43 @@ export default function PromoCodeManager() {
   useEffect(() => {
     fetchPromos();
   }, []);
+
+  const handleEditOpen = (record) => {
+  setEditingPromo(record);
+  editForm.setFieldsValue({
+    code: record.code,
+    discountType: record.discountType,
+    discountValue: record.discountValue,
+    applicablePlans: record.applicablePlans,
+    validity: [dayjs(record.validFrom), dayjs(record.validTo)],
+    maxTotalUsages: record.maxTotalUsages === -1 ? undefined : record.maxTotalUsages,
+  });
+  setEditModalOpen(true);
+};
+
+const handleEdit = async (values) => {
+  setSubmitting(true);
+  try {
+    const [validFrom, validTo] = values.validity;
+    await editPromoApi(editingPromo.id, {
+      code: values.code,
+      discountType: values.discountType,
+      discountValue: values.discountValue,
+      applicablePlans: values.applicablePlans || [],
+      validFrom: validFrom.toISOString(),
+      validTo: validTo.toISOString(),
+      maxTotalUsages: values.maxTotalUsages || -1,
+    });
+    messageApi.success("Promo code updated");
+    setEditModalOpen(false);
+    editForm.resetFields();
+    fetchPromos();
+  } catch (err) {
+    messageApi.error(err?.response?.data?.message || "Failed to update promo code");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleToggle = async (id) => {
     setToggling(id);
@@ -227,20 +268,29 @@ export default function PromoCodeManager() {
         />
       ),
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Button
-          size="small"
-          loading={toggling === record.id}
-          onClick={() => handleToggle(record.id)}
-          danger={record.isActive}
-        >
-          {record.isActive ? "Disable" : "Enable"}
-        </Button>
-      ),
-    },
+   {
+  title: "Actions",
+  key: "actions",
+  render: (_, record) => (
+    <Space>
+      <Button
+        size="small"
+        icon={<EditOutlined />}
+        onClick={() => handleEditOpen(record)}
+      >
+        Edit
+      </Button>
+      <Button
+        size="small"
+        loading={toggling === record.id}
+        onClick={() => handleToggle(record.id)}
+        danger={record.isActive}
+      >
+        {record.isActive ? "Disable" : "Enable"}
+      </Button>
+    </Space>
+  ),
+},
   ];
 
   return (
@@ -323,25 +373,34 @@ export default function PromoCodeManager() {
           style={{ marginTop: 16 }}
         >
           {/* Code field */}
-          <Form.Item
-            label="Promo Code"
-            name="code"
-            normalize={(val) => val?.toUpperCase()}
-          >
-            <Input
-              placeholder="Leave empty to auto-generate"
-              addonAfter={
-                <Button
-                  type="link"
-                  size="small"
-                  style={{ padding: 0, height: "auto" }}
-                  onClick={() => form.setFieldValue("code", genCode())}
-                >
-                  Auto-generate
-                </Button>
-              }
-            />
-          </Form.Item>
+         <Form.Item
+  label="Promo Code"
+  name="code"
+  normalize={(val) => val?.toUpperCase()}
+  rules={[
+    { max: 20, message: "Promo code cannot exceed 20 characters" },
+    {
+      pattern: /^[A-Z0-9-_]*$/,
+      message: "Only letters, numbers, hyphens and underscores allowed",
+    },
+  ]}
+>
+  <Input
+    placeholder="Leave empty to auto-generate"
+    maxLength={20}
+    showCount
+    addonAfter={
+      <Button
+        type="link"
+        size="small"
+        style={{ padding: 0, height: "auto" }}
+        onClick={() => form.setFieldValue("code", genCode())}
+      >
+        Auto-generate
+      </Button>
+    }
+  />
+</Form.Item>
 
           {/* Discount Type */}
           <Form.Item
@@ -359,17 +418,34 @@ export default function PromoCodeManager() {
           </Form.Item>
 
           {/* Discount Value */}
-          <Form.Item
-            label="Discount Value"
-            name="discountValue"
-            rules={[{ required: true, message: "Enter discount value" }]}
-          >
-            <InputNumber
-              min={1}
-              style={{ width: "100%" }}
-              placeholder="e.g. 20 or 500"
-            />
-          </Form.Item>
+        <Form.Item
+  label="Discount Value"
+  name="discountValue"
+  rules={[
+    { required: true, message: "Enter discount value" },
+    ({ getFieldValue }) => ({
+      validator(_, value) {
+        if (!value) return Promise.resolve();
+        const type = getFieldValue("discountType");
+        if (type === "PERCENTAGE" && value > 100)
+          return Promise.reject("Percentage cannot exceed 100%");
+        if (type === "FLAT" && value > 99999)
+          return Promise.reject("Flat discount cannot exceed ₹99,999");
+        if (value <= 0)
+          return Promise.reject("Value must be greater than 0");
+        return Promise.resolve();
+      },
+    }),
+  ]}
+>
+  <InputNumber
+    min={1}
+    max={99999}
+    precision={0}
+    style={{ width: "100%" }}
+    placeholder="e.g. 20 for % or 500 for flat"
+  />
+</Form.Item>
 
           {/* Applicable Plans */}
           <Form.Item
@@ -452,6 +528,74 @@ export default function PromoCodeManager() {
           </div>
         </Form>
       </Modal>
+       <Modal
+  title="Edit Promo Code"
+  open={editModalOpen}
+  onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
+  footer={null}
+  width={480}
+  centered
+>
+  <Form form={editForm} layout="vertical" onFinish={handleEdit} style={{ marginTop: 16 }}>
+    <Form.Item
+      label="Promo Code"
+      name="code"
+      normalize={(val) => val?.toUpperCase()}
+      rules={[
+        { max: 20, message: "Promo code cannot exceed 20 characters" },
+        { pattern: /^[A-Z0-9-_]*$/, message: "Only letters, numbers, hyphens and underscores allowed" },
+      ]}
+    >
+      <Input placeholder="Promo code" maxLength={20} showCount />
+    </Form.Item>
+
+    <Form.Item label="Discount Type" name="discountType"
+      rules={[{ required: true, message: "Select discount type" }]}>
+      <Select options={[
+        { value: "PERCENTAGE", label: "Percentage" },
+        { value: "FLAT", label: "Flat Amount" },
+      ]} />
+    </Form.Item>
+
+    <Form.Item label="Discount Value" name="discountValue"
+      rules={[
+        { required: true, message: "Enter discount value" },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            if (!value) return Promise.resolve();
+            const type = getFieldValue("discountType");
+            if (type === "PERCENTAGE" && value > 100)
+              return Promise.reject("Percentage cannot exceed 100%");
+            if (type === "FLAT" && value > 99999)
+              return Promise.reject("Flat discount cannot exceed ₹99,999");
+            return Promise.resolve();
+          },
+        }),
+      ]}>
+      <InputNumber min={1} max={99999} precision={0} style={{ width: "100%" }} />
+    </Form.Item>
+
+    <Form.Item label="Applicable Plans" name="applicablePlans"
+      help="Leave empty to apply to all plans">
+      <Select mode="multiple" options={PLAN_OPTIONS} placeholder="All plans" allowClear />
+    </Form.Item>
+
+    <Form.Item label="Validity Period" name="validity"
+      rules={[{ required: true, message: "Select validity range" }]}>
+      <RangePicker showTime style={{ width: "100%" }}
+        disabledDate={(current) => current && current < dayjs().startOf("day")} />
+    </Form.Item>
+
+    <Form.Item label="Max Total Usages" name="maxTotalUsages" help="Leave empty for unlimited">
+      <InputNumber min={1} style={{ width: "100%" }} placeholder="e.g. 100" />
+    </Form.Item>
+
+    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+      <Button onClick={() => { setEditModalOpen(false); editForm.resetFields(); }}>Cancel</Button>
+      <Button type="primary" htmlType="submit" loading={submitting}>Save Changes</Button>
+    </div>
+  </Form>
+</Modal>
     </>
   );
 }
