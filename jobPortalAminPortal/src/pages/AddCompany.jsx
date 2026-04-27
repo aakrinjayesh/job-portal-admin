@@ -246,6 +246,17 @@ export default function AddCompany() {
   <Input maxLength={120} />
 </Form.Item>
 
+
+              <Form.Item name="companySize" label="Company Size">
+                <Select>
+                  <Option value="1-10">1-10</Option>
+                  <Option value="11-50">11-50</Option>
+                  <Option value="51-200">51-200</Option>
+                  <Option value="200+">200+</Option>
+                </Select>
+              </Form.Item>
+         
+
 <Form.Item
   name="foundedYear"
   label="Founded Year"
