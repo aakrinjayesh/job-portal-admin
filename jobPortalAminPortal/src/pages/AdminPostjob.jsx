@@ -272,14 +272,18 @@ export default function AdminPostjob() {
   // When org changes, populate members dropdown + companyName
   const handleOrgChange = (orgId) => {
   const org = organizations.find(o => o.id === orgId);
-  setOrgDisplayName(org?.name || "");          // ← add this
+
+  setOrgDisplayName(org?.name || "");
   setOrgMembers(org?.members || []);
+
   setForm(f => ({
     ...f,
     organizationId: orgId,
     postedById: "",
-    companyName: org?.companyProfile?.name || org?.name || "",
-    companyLogo: org?.companyProfile?.logoUrl || "",
+
+    // ✅ keep existing values untouched
+    companyName: f.companyName,
+    companyLogo: f.companyLogo,
   }));
 };
 
@@ -514,7 +518,7 @@ const handleLogoRemove = () => {
 </Field>
             <Field>
               <Label>Company Name</Label>
-              <Input value={form.companyName} onChange={set("companyName")} placeholder="Auto-filled from org" />
+              <Input value={form.companyName} onChange={set("companyName")} placeholder="Enter Company Name" />
             </Field>
           </Grid>
 

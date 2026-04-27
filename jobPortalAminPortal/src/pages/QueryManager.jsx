@@ -229,11 +229,14 @@ export default function QueryManager() {
         <div style={{ marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <Text strong style={{ fontSize: isMobile ? 12 : 14 }}>SQL Query</Text>
           <Space size={isMobile ? 4 : 8}>
-            <Tooltip title="Copy query">
-              <Button size="small" icon={<CopyOutlined />} onClick={handleCopy} disabled={!query}>
-                {!isMobile && "Copy"}
-              </Button>
-            </Tooltip>
+          <Tooltip title="Copy query">
+  <Button
+    size="small"
+    icon={<CopyOutlined />}
+    onClick={handleCopy}
+    disabled={!query}
+  />
+</Tooltip>
             <Tooltip title="Clear">
               <Button size="small" icon={<ClearOutlined />} onClick={handleClear} disabled={!query}>
                 {!isMobile && "Clear"}
