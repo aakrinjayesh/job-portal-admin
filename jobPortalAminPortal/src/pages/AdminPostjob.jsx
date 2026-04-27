@@ -3,6 +3,14 @@ import {
   getOrganizationsApi,       // GET /admin/organizations
   adminPostJobApi,           // POST /admin/jobs
 } from "../api/api";
+import {
+  GetSkills, PostSkills,
+  GetClouds, PostClouds,
+  GetRole, PostRole,
+  GetCertifications, PostCertifications,
+  GetLocations, PostLocations,
+} from "../api/api";
+import ReusableSelect from "./ReusableSelect"; // adjust path
 
 // ── Add these to your api.js ──────────────────────────────
 // export const getOrganizationsApi = (params) =>
@@ -210,7 +218,7 @@ const EMPTY_FORM = {
   // Admin fields
   organizationId: "",
   postedById: "",
-  // Job fields
+  location: [],
   role: "",
   description: "",
   employmentType: "",
@@ -292,18 +300,24 @@ export default function AdminPostjob() {
     questions: f.questions.filter((_, idx) => idx !== i),
   }));
 
-  const validate = () => {
-    if (!form.organizationId) return "Select an organization";
-    if (!form.role.trim())    return "Job role is required";
-    if (!form.description.trim()) return "Description is required";
-    if (!form.employmentType) return "Select employment type";
-    if (!form.jobType)        return "Select job type";
-    if (!form.salary.trim())  return "Salary is required";
-    if (!form.responsibilities.trim()) return "Responsibilities are required";
-    if (NEEDS_TENURE.includes(form.employmentType) && !form.tenure.number)
-      return "Tenure is required for this employment type";
-    return null;
-  };
+ const validate = () => {
+  if (!form.organizationId)          return "Select an organization";
+  if (!form.role || (typeof form.role === "string" && !form.role.trim()))
+                                      return "Job role is required";
+  if (!form.description.trim())      return "Description is required";
+  if (!form.employmentType)          return "Select employment type";
+  if (!form.jobType)                 return "Select job type";
+   if (!form.skills || form.skills.length === 0)
+    return "At least one skill is required";
+
+  if (!form.clouds || form.clouds.length === 0)
+    return "At least one cloud is required";
+  // if (!form.salary.trim())           return "Salary is required";
+  // if (!form.responsibilities.trim()) return "Responsibilities are required";
+  if (NEEDS_TENURE.includes(form.employmentType) && !form.tenure.number)
+                                      return "Tenure is required for this employment type";
+  return null;
+};
 
   const handleSubmit = async () => {
     const err = validate();
@@ -358,8 +372,9 @@ console.log("Submitting payload:", payload);
   setForm(EMPTY_FORM);
   setOrgMembers([]);
   setOrgDisplayName("");
-  setLogoPreview("");   
-  setLogoError("");    
+  setLogoPreview("");
+  setLogoError("");
+  setIsExperienceRange(false); // ← add this too
 };
 
   
@@ -486,10 +501,17 @@ const handleLogoRemove = () => {
         {/* ── 2. Basic Info ── */}
         <SectionCard title="Job Details" icon="📋">
           <Grid cols={2}>
-            <Field>
-              <Label required>Job Role / Title</Label>
-              <Input value={form.role} onChange={set("role")} placeholder="e.g. Salesforce Developer" />
-            </Field>
+           <Field>
+  <Label required>Job Role / Title</Label>
+  <ReusableSelect
+    placeholder="Select or add Role"
+    fetchFunction={GetRole}
+    addFunction={PostRole}
+    single={true}
+    value={form.role}
+    onChange={val => set("role")(val)}
+  />
+</Field>
             <Field>
               <Label>Company Name</Label>
               <Input value={form.companyName} onChange={set("companyName")} placeholder="Auto-filled from org" />
@@ -502,7 +524,7 @@ const handleLogoRemove = () => {
           </div>
 
           <div style={{ marginTop: 16 }}>
-            <Label required>Responsibilities</Label>
+            <Label>Responsibilities</Label>
             <Textarea value={form.responsibilities} onChange={set("responsibilities")} placeholder="Key responsibilities and day-to-day tasks…" rows={4} />
           </div>
         </SectionCard>
@@ -632,7 +654,7 @@ const handleLogoRemove = () => {
   )}
 </Field>
     <Field style={{ marginTop: 22 }}>
-  <Label required>Salary</Label>
+  <Label>Salary</Label>
   <Input
     value={form.salary}
     onChange={v => set("salary")(v.slice(0, 10))}
@@ -650,12 +672,31 @@ const handleLogoRemove = () => {
           <div style={{ marginTop: 16 }}>
          <Grid cols={2}>
   {/* Hide location when Remote is selected */}
-  {form.jobType !== "Remote" && (
-    <Field>
-      <Label>Location</Label>
-      <Input value={form.location} onChange={set("location")} placeholder="e.g. Mumbai, India" />
-    </Field>
-  )}
+ {form.jobType !== "Remote" && (
+  <Field>
+    <Label>Location</Label>
+    <ReusableSelect
+      single={false}
+      placeholder="Select up to 3 Locations"
+      fetchFunction={GetLocations}
+      addFunction={PostLocations}
+      value={
+        typeof form.location === "string" && form.location
+          ? form.location.split(",").map(l => l.trim())
+          : form.location || []
+      }
+      onChange={val => {
+        if (val.length > 3) return;
+        set("location")(val);
+      }}
+    />
+    {Array.isArray(form.location) && form.location.length > 3 && (
+      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+        Maximum 3 locations allowed
+      </div>
+    )}
+  </Field>
+)}
   <Field>
     <Label>Applicant Source</Label>
     <Select value={form.applicantSource} onChange={set("applicantSource")} options={APPLICANT_SOURCES} />
@@ -665,20 +706,59 @@ const handleLogoRemove = () => {
         </SectionCard>
 
         {/* ── 4. Skills & Clouds ── */}
-        <SectionCard title="Skills & Expertise" icon="✦">
-          <div style={{ marginBottom: 16 }}>
-            <Label>Skills</Label>
-            <TagInput tags={form.skills} onChange={set("skills")} placeholder="Type a skill, press Enter or Add…" />
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <Label>Salesforce Clouds</Label>
-            <TagInput tags={form.clouds} onChange={set("clouds")} placeholder="e.g. Sales Cloud, Service Cloud…" />
-          </div>
-          <div>
-            <Label>Certifications</Label>
-            <TagInput tags={form.certifications} onChange={set("certifications")} placeholder="e.g. Salesforce Admin…" />
-          </div>
-        </SectionCard>
+<SectionCard title="Skills & Expertise" icon="✦">
+  <div style={{ marginBottom: 16 }}>
+    <Label required>Skills</Label>
+    <ReusableSelect
+      single={false}
+      placeholder="Select up to 50 Skills"
+      fetchFunction={GetSkills}
+      addFunction={PostSkills}
+      value={form.skills}
+      onChange={val => {
+        if (val.length > 50) return;
+        set("skills")(val);
+      }}
+    />
+    {form.skills.length > 50 && (
+      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+        Maximum 50 skills allowed
+      </div>
+    )}
+  </div>
+
+  <div style={{ marginBottom: 16 }}>
+    <Label required>Clouds</Label>
+    <ReusableSelect
+      single={false}
+      placeholder="Select up to 12 Clouds"
+      fetchFunction={GetClouds}
+      addFunction={PostClouds}
+      value={form.clouds}
+      onChange={val => {
+        if (val.length > 12) return;
+        set("clouds")(val);
+      }}
+    />
+    {form.clouds.length > 12 && (
+      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+        Maximum 12 clouds allowed
+      </div>
+    )}
+  </div>
+
+  <div>
+    <Label>Certifications</Label>
+    <ReusableSelect
+      single={false}
+      placeholder="Select or add Certification"
+      fetchFunction={GetCertifications}
+      addFunction={PostCertifications}
+      value={form.certifications}
+      onChange={val => set("certifications")(val)}
+    />
+  </div>
+</SectionCard>
 
         {/* ── 5. Additional ── */}
         <SectionCard title="Additional Settings" icon="🔧">
