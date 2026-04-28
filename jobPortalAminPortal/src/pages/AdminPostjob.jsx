@@ -390,7 +390,9 @@ const questionsPayload = screeningQuestions
         tenure:            NEEDS_TENURE.includes(form.employmentType)
                              ? { number: form.tenure.number, type: form.tenure.type }
                              : undefined,
-        location:          form.location || undefined,
+        location: Array.isArray(form.location)
+  ? form.location.join(", ")
+  : form.location || undefined,
         skills:            form.skills,
         clouds:            form.clouds,
         questions: questionsPayload,
