@@ -3,6 +3,7 @@ import {
   getOrganizationsApi,       // GET /admin/organizations
   adminPostJobApi,           // POST /admin/jobs
 } from "../api/api";
+import ScreeningQuestionsStep from "./ScreeningQuestionsStep";
 import {
   GetSkills, PostSkills,
   GetClouds, PostClouds,
@@ -10,6 +11,7 @@ import {
   GetCertifications, PostCertifications,
   GetLocations, PostLocations,
 } from "../api/api";
+import { message } from "antd"; 
 import ReusableSelect from "./ReusableSelect"; // adjust path
 
 // ── Add these to your api.js ──────────────────────────────
@@ -242,6 +244,15 @@ const EMPTY_FORM = {
   questions: [],
 };
 
+// Screening question type options
+const QUESTION_TYPE_OPTIONS = [
+  { label: "Short Text", value: "TEXT" },
+  { label: "Long Text", value: "TEXTAREA" },
+  { label: "Number", value: "NUMBER" },
+  { label: "Yes / No", value: "BOOLEAN" },
+  { label: "Multiple Choice", value: "SELECT" },
+];
+
 export default function AdminPostjob() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [organizations, setOrganizations] = useState([]);
@@ -254,6 +265,10 @@ export default function AdminPostjob() {
   const [logoPreview, setLogoPreview] = useState("");
   const [isExperienceRange, setIsExperienceRange] = useState(false);
   const [isSalaryRange, setIsSalaryRange] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  // ── SCREENING QUESTIONS STATE ──────────────────────────
+  const [screeningQuestions, setScreeningQuestions] = useState([]);
 
   // Load organizations for the dropdown
  useEffect(() => {
@@ -271,6 +286,21 @@ export default function AdminPostjob() {
     })
     .finally(() => setLoadingOrgs(false));
 }, []);
+
+const validateScreeningQuestions = () => {
+  for (let i = 0; i < screeningQuestions.length; i++) {
+    const q = screeningQuestions[i];
+    if (!q.question.trim()) {
+      messageApi.error(`Question ${i + 1} cannot be empty`);
+      return false;
+    }
+    if (q.type === "SELECT" && q.options.length < 2) {
+      messageApi.error(`Question ${i + 1} (Multiple Choice) needs at least 2 options`);
+      return false;
+    }
+  }
+  return true;
+};
 
   // When org changes, populate members dropdown + companyName
   const handleOrgChange = (orgId) => {
@@ -326,13 +356,26 @@ export default function AdminPostjob() {
   return null;
 };
 
+const questionsPayload = screeningQuestions
+  .filter(q => q.question.trim() !== "")
+  .map((q, index) => ({
+    question: q.question.trim(),
+    type: q.type,
+    required: q.required,
+    options: q.type === "SELECT" ? q.options : [],
+    order: index,
+  }));
+
   const handleSubmit = async () => {
     const err = validate();
     if (err) { 
       console.log("Validation error:", err); 
       setToast({ message: err, type: "error" }); return; }
 
+      if (!validateScreeningQuestions()) return;
+
     setSaving(true);
+    
     try {
       const payload = {
         organizationId:    form.organizationId,
@@ -350,6 +393,7 @@ export default function AdminPostjob() {
         location:          form.location || undefined,
         skills:            form.skills,
         clouds:            form.clouds,
+        questions: questionsPayload,
        salary: isSalaryRange
   ? { min: form.salaryMin, max: form.salaryMax }
   : form.salary,
@@ -369,6 +413,7 @@ console.log("Submitting payload:", payload);
       setForm(EMPTY_FORM);
       setOrgMembers([]);
       setOrgDisplayName(""); 
+      setScreeningQuestions([]);
     } catch (e) {
       console.error("Submit error:", e);  
       setToast({ message: e?.response?.data?.message || "Failed to post job", type: "error" });
@@ -384,6 +429,7 @@ console.log("Submitting payload:", payload);
   setLogoPreview("");
   setLogoError("");
   setIsExperienceRange(false); // ← add this too
+  setScreeningQuestions([]);
 };
 
   
@@ -881,34 +927,14 @@ const handleLogoRemove = () => {
         </SectionCard>
 
         {/* ── 6. Screening Questions ── */}
-        <SectionCard title="Screening Questions" icon="❓">
-          {form.questions.length === 0 && (
-            <div style={{ textAlign: "center", padding: "20px 0", color: "#9CA3AF", fontSize: 13 }}>
-              No screening questions added yet
-            </div>
-          )}
-          {form.questions.map((q, i) => (
-            <QuestionRow
-              key={i}
-              index={i}
-              q={q}
-              onChange={q => updateQuestion(i, q)}
-              onRemove={() => removeQuestion(i)}
-            />
-          ))}
-          <button
-            onClick={addQuestion}
-            style={{
-              width: "100%", padding: "10px", fontSize: 13, fontWeight: 500,
-              border: "1.5px dashed #D1D5DB", borderRadius: 8,
-              background: "transparent", color: "#6B7280", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              marginTop: form.questions.length ? 4 : 0,
-            }}
-          >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Screening Question
-          </button>
-        </SectionCard>
+{contextHolder}
+<SectionCard title="Screening Questions" icon="❓">
+  <ScreeningQuestionsStep
+    screeningQuestions={screeningQuestions}
+    setScreeningQuestions={setScreeningQuestions}
+    messageApi={messageApi}
+  />
+</SectionCard>
 
         {/* ── Bottom submit bar ── */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, paddingTop: 4, paddingBottom: 32 }}>

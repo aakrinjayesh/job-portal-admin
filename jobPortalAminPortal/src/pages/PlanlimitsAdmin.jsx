@@ -100,24 +100,34 @@ function PriceEditor({ plan, planData, onSaved, onToast }) {
   const cancel = () => setEditing(false);
 
   const save = async () => {
-    const mo = parseInt(monthly);
-    const yr = parseInt(yearly);
-    if (isNaN(mo) || mo < 0 || isNaN(yr) || yr < 0) {
-      onToast({ message: "Enter valid prices (whole numbers ≥ 0)", type: "error" });
-      return;
-    }
-    setSaving(true);
-    try {
-      await updatePlanPricingApi(planData.id, { monthlyPrice: mo, yearlyPrice: yr });
-      onSaved(planData.id, mo, yr);
-      onToast({ message: `${plan.label} pricing updated`, type: "success" });
-      setEditing(false);
-    } catch (e) {
-      onToast({ message: e?.response?.data?.message || "Failed to update pricing", type: "error" });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const mo = parseInt(monthly);
+  const yr = parseInt(yearly);
+
+  if (isNaN(mo) || mo < 0 || mo > 100000) {
+    onToast({ message: "Monthly price must be between ₹0 and ₹1,00,000", type: "error" });
+    return;
+  }
+
+  if (isNaN(yr) || yr < 0 || yr > 1000000) {
+    onToast({ message: "Yearly price must be between ₹0 and ₹10,00,000", type: "error" });
+    return;
+  }
+
+  setSaving(true);
+  try {
+    await updatePlanPricingApi(planData.id, {
+      monthlyPrice: mo,
+      yearlyPrice: yr
+    });
+    onSaved(planData.id, mo, yr);
+    onToast({ message: `${plan.label} pricing updated`, type: "success" });
+    setEditing(false);
+  } catch (e) {
+    onToast({ message: e?.response?.data?.message || "Failed to update pricing", type: "error" });
+  } finally {
+    setSaving(false);
+  }
+};
 
   if (!editing) {
     return (
