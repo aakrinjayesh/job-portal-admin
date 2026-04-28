@@ -225,6 +225,8 @@ const EMPTY_FORM = {
   experienceLevel: "",
   experience: { min: "", max: "", type: "year" },
   tenure: { number: "", type: "month" },
+  salaryMin: "",
+  salaryMax: "",
   location: "",
   skills: [],
   clouds: [],
@@ -251,6 +253,7 @@ export default function AdminPostjob() {
   const [logoError, setLogoError] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
   const [isExperienceRange, setIsExperienceRange] = useState(false);
+  const [isSalaryRange, setIsSalaryRange] = useState(false);
 
   // Load organizations for the dropdown
  useEffect(() => {
@@ -347,7 +350,9 @@ export default function AdminPostjob() {
         location:          form.location || undefined,
         skills:            form.skills,
         clouds:            form.clouds,
-        salary:            form.salary,
+       salary: isSalaryRange
+  ? { min: form.salaryMin, max: form.salaryMax }
+  : form.salary,
         companyName:       form.companyName || undefined,
         responsibilities:  form.responsibilities,
         certifications:    form.certifications,
@@ -657,17 +662,59 @@ const handleLogoRemove = () => {
     </div>
   )}
 </Field>
-    <Field style={{ marginTop: 22 }}>
-  <Label>Salary</Label>
-  <Input
-    value={form.salary}
-    onChange={v => set("salary")(v.slice(0, 10))}
-    placeholder="e.g. 10-15 LPA or ₹80K/mo (max 10 chars)"
-  />
-  {form.salary.length === 10 && (
-    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 6 }}>
-      Maximum 10 characters allowed
+   <Field>
+  <div style={{ marginBottom: 6 }}>
+    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 4 }}>
+      Salary
     </div>
+
+    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#6B7280", cursor: "pointer" }}>
+      <input
+        type="checkbox"
+        checked={isSalaryRange}
+        onChange={e => {
+          setIsSalaryRange(e.target.checked);
+          set("salary")(""); // reset salary
+        }}
+      />
+      Use Salary Range
+    </label>
+  </div>
+
+  {!isSalaryRange ? (
+    // 🔹 Single salary input
+    <Input
+      value={form.salary}
+      onChange={v => set("salary")(v.slice(0, 10))}
+      placeholder="e.g. 10 LPA or ₹80K/mo"
+    />
+  ) : (
+    // 🔹 Range input
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <Input
+        value={form.salaryMin || ""}
+        onChange={v =>
+          setForm(f => ({ ...f, salaryMin: v }))
+        }
+        placeholder="Min 2 LPA"
+      />
+      <span style={{ color: "#9CA3AF" }}>–</span>
+      <Input
+        value={form.salaryMax || ""}
+        onChange={v =>
+          setForm(f => ({ ...f, salaryMax: v }))
+        }
+        placeholder="Max 4 LPA"
+      />
+    </div>
+  )}
+
+  {/* Validation */}
+  {isSalaryRange && form.salaryMin && form.salaryMax &&
+    Number(form.salaryMax) < Number(form.salaryMin) && (
+      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 6 }}>
+        Max salary must be greater than Min
+      </div>
   )}
 </Field>
             </Grid>
