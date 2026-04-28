@@ -184,6 +184,75 @@ export default function OrganizationDetails() {
       ),
     },
     {
+  key: "jobs",
+  label: `Jobs (${org._count?.jobs || 0})`,
+  children: org.jobs?.length > 0 ? (
+    <Table
+      dataSource={org.jobs}
+      rowKey="id"
+      pagination={{ pageSize: 10 }}
+      columns={[
+        {
+          title: "Role",
+          dataIndex: "role",
+          key: "role",
+          render: (v) => <Text strong>{v}</Text>,
+        },
+        {
+          title: "Employment Type",
+          dataIndex: "employmentType",
+          key: "employmentType",
+          render: (v) => <Tag>{v}</Tag>,
+        },
+        {
+          title: "Job Type",
+          dataIndex: "jobType",
+          key: "jobType",
+          render: (v) => <Tag color="blue">{v}</Tag>,
+        },
+        {
+          title: "Location",
+          dataIndex: "location",
+          key: "location",
+          render: (v) => v || "—",
+        },
+        {
+          title: "Salary",
+          dataIndex: "salary",
+          key: "salary",
+          render: (v) => v || "Not Disclosed",
+        },
+        {
+          title: "Applications",
+          key: "applications",
+          render: (_, r) => (
+            <Tag color="purple">{r._count?.jobApplications || 0} applied</Tag>
+          ),
+        },
+        {
+          title: "Status",
+          dataIndex: "status",
+          key: "status",
+          render: (s) => (
+            <Tag color={s === "Open" ? "success" : "error"}>{s}</Tag>
+          ),
+        },
+        {
+          title: "Posted",
+          dataIndex: "createdAt",
+          key: "createdAt",
+          render: (d) =>
+            new Date(d).toLocaleDateString("en-IN", {
+              day: "2-digit", month: "short", year: "numeric",
+            }),
+        },
+      ]}
+    />
+  ) : (
+    <Alert type="info" message="No jobs posted by this organization" showIcon />
+  ),
+},
+    {
       key: "subscription",
       label: "Subscription",
       children: org.subscription ? (
