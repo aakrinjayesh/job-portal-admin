@@ -108,6 +108,7 @@ export default function AddCompany() {
   const [specialties, setSpecialties] = useState([]);
   const [clouds, setClouds] = useState([]);
   const [certifications, setCertifications] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { message } = App.useApp();
 
   //   const [partnerTier, setPartnerTier] = useState("");
@@ -116,7 +117,7 @@ export default function AddCompany() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-
+      setLoading(true);
       const payload = {
         name: values.organizationName,
         domain: values.domain,
@@ -146,7 +147,12 @@ export default function AddCompany() {
 
       await createCompanyApi(payload);
 
-      message.success("Company Profile created successfully 🚀");
+      //   message.success("Company Profile created successfully 🚀");
+      message.success({
+        // ✅ REPLACE old message.success
+        content: "Company Profile created successfully 🚀",
+        duration: 3,
+      });
 
       form.resetFields();
       setLocations([]);
@@ -165,6 +171,8 @@ export default function AddCompany() {
         return;
       }
       message.error(err?.response?.data?.message || "Error creating company");
+    } finally {
+      setLoading(false); // ✅ ADD THIS BLOCK
     }
   };
 
@@ -213,6 +221,7 @@ export default function AddCompany() {
             name="slug"
             label="Slug"
             rules={[
+              { required: true, message: "Please enter a website URL" },
               { max: 50, message: "Max 50 characters allowed" },
               {
                 pattern: /^[a-z0-9-]+$/,
@@ -243,9 +252,12 @@ export default function AddCompany() {
             name="website"
             label="Website"
             rules={[
+              { required: true, message: "Please enter a website URL" },
               {
-                pattern: /^https:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}.*$/,
-                message: "Please enter a valid HTTPS website URL",
+                // pattern: /^https:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}.*$/,
+                pattern:
+                  /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}.*$/,
+                message: "Please enter a valid https website URL",
               },
               { max: 200, message: "Max 200 characters allowed" },
             ]}
@@ -261,7 +273,13 @@ export default function AddCompany() {
             <Input maxLength={120} />
           </Form.Item>
 
-          <Form.Item name="companySize" label="Company Size">
+          <Form.Item
+            name="companySize"
+            label="Company Size"
+            rules={[
+              { required: true, message: "Please select a company size" },
+            ]}
+          >
             <Select>
               <Option value="1-10">1-10</Option>
               <Option value="11-50">11-50</Option>
@@ -274,6 +292,7 @@ export default function AddCompany() {
             name="foundedYear"
             label="Founded Year"
             rules={[
+              //   { required: true, message: "Please enter founded year" },
               {
                 type: "number",
                 min: 1900,
@@ -426,7 +445,12 @@ export default function AddCompany() {
 
         {/* 🔹 SUBMIT */}
         <div style={{ textAlign: "right" }}>
-          <Button type="primary" onClick={handleSubmit}>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            loading={loading} // ✅ ADD
+            disabled={loading}
+          >
             Create Company
           </Button>
         </div>
