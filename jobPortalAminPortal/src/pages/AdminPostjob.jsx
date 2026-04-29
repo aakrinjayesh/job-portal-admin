@@ -400,8 +400,8 @@ const questionsPayload = screeningQuestions
         skills:            form.skills,
         clouds:            form.clouds,
         questions: questionsPayload,
-       salary: isSalaryRange
-  ? { min: form.salaryMin, max: form.salaryMax }
+     salary: isSalaryRange
+  ? `${form.salaryMin} - ${form.salaryMax}`
   : form.salary,
         companyName:       form.companyName || undefined,
         responsibilities:  form.responsibilities,
