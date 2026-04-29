@@ -384,9 +384,13 @@ const questionsPayload = screeningQuestions
         description:       form.description,
         employmentType:    form.employmentType,
         experienceLevel:   form.experienceLevel || undefined,
-        experience:        (form.experience.min || form.experience.max)
-                             ? { min: form.experience.min, max: form.experience.max }
-                             : undefined,
+        experience: (form.experience.min || form.experience.max)
+  ? { 
+      min: form.experience.min, 
+      max: form.experience.max,
+      type: form.experience.type   
+    }
+  : undefined,
         tenure:            NEEDS_TENURE.includes(form.employmentType)
                              ? { number: form.tenure.number, type: form.tenure.type }
                              : undefined,
