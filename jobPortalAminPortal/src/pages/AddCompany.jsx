@@ -186,10 +186,10 @@ export default function AddCompany() {
             label="Organization Name"
             rules={[
               { required: true },
-              { max: 30, message: "Max 30 characters allowed" },
+              { max: 50, message: "Max 50 characters allowed" },
             ]}
           >
-            <Input placeholder="Google" maxLength={30} showCount />
+            <Input placeholder="Google" maxLength={50} showCount />
           </Form.Item>
 
           <Form.Item
