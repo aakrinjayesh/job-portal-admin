@@ -225,7 +225,7 @@ const EMPTY_FORM = {
   description: "",
   employmentType: "",
   experienceLevel: "",
-  experience: { min: "", max: "", type: "year" },
+  experience: { number: "", min: "", max: "", type: "year" },
   tenure: { number: "", type: "month" },
   salaryMin: "",
   salaryMax: "",
@@ -269,6 +269,12 @@ export default function AdminPostjob() {
 
   // ── SCREENING QUESTIONS STATE ──────────────────────────
   const [screeningQuestions, setScreeningQuestions] = useState([]);
+
+  useEffect(() => {
+  if (form.jobType === "Remote") {
+    set("location")(["Remote"]);
+  }
+}, [form.jobType]);
 
   // Load organizations for the dropdown
  useEffect(() => {
@@ -384,19 +390,21 @@ const questionsPayload = screeningQuestions
         description:       form.description,
         employmentType:    form.employmentType,
         experienceLevel:   form.experienceLevel || undefined,
-        experience: (form.experience.min || form.experience.max)
-  ? { 
-      min: form.experience.min, 
-      max: form.experience.max,
-      type: form.experience.type   
-    }
-  : undefined,
+      experience: isExperienceRange
+  ? (form.experience.min || form.experience.max)
+    ? { min: form.experience.min, max: form.experience.max, type: form.experience.type }
+    : undefined
+  : form.experience.number
+    ? { number: form.experience.number, type: form.experience.type }
+    : undefined,
         tenure:            NEEDS_TENURE.includes(form.employmentType)
                              ? { number: form.tenure.number, type: form.tenure.type }
                              : undefined,
-        location: Array.isArray(form.location)
-  ? form.location.join(", ")
-  : form.location || undefined,
+     location: form.jobType === "Remote"
+  ? "Remote"
+  : Array.isArray(form.location)
+    ? form.location.join(", ")
+    : form.location || undefined,
         skills:            form.skills,
         clouds:            form.clouds,
         questions: questionsPayload,
@@ -595,20 +603,32 @@ const handleLogoRemove = () => {
           <Grid cols={3}>
             <Field>
               <Label required>Employment Type</Label>
-              <Select value={form.employmentType} onChange={set("employmentType")} placeholder="Select…" options={EMPLOYMENT_TYPES} />
+             <Select
+  value={form.employmentType}
+  onChange={v => {
+    const needsTenure = ["PartTime", "Contract", "Freelancer"].includes(v);
+    setForm(f => ({
+      ...f,
+      employmentType: v,
+      tenure: needsTenure ? f.tenure : { number: "", type: "month" }, // ← reset if not needed
+    }));
+  }}
+  placeholder="Select…"
+  options={EMPLOYMENT_TYPES}
+/>
             </Field>
            <Field>
   <Label required>Job Type</Label>
-  <Select
-    value={form.jobType}
-    onChange={v => setForm(f => ({
-      ...f,
-      jobType: v,
-      location: v === "Remote" ? "" : f.location,  // ← clears on Remote
-    }))}
-    placeholder="Select…"
-    options={JOB_TYPES}
-  />
+ <Select
+  value={form.jobType}
+  onChange={v => setForm(f => ({
+    ...f,
+    jobType: v,
+    location: v === "Remote" ? ["Remote"] : [],  // ← set "Remote" instead of clearing
+  }))}
+  placeholder="Select…"
+  options={JOB_TYPES}
+/>
 </Field>
             <Field>
               <Label>Experience Level</Label>
@@ -627,13 +647,16 @@ const handleLogoRemove = () => {
                   onChange={v => setForm(f => ({ ...f, tenure: { ...f.tenure, number: v } }))}
                   placeholder="e.g. 6"
                 />
-                <div style={{ width: 140 }}>
-                  <Select
-                    value={form.tenure.type}
-                    onChange={v => setForm(f => ({ ...f, tenure: { ...f.tenure, type: v } }))}
-                    options={TENURE_TYPES}
-                  />
-                </div>
+             <div style={{ width: 140 }}>
+  <select
+    value={form.tenure.type || "month"}
+    onChange={e => setForm(f => ({ ...f, tenure: { ...f.tenure, type: e.target.value } }))}
+    style={{ width: "100%", padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
+  >
+    <option value="month">Month</option>
+    <option value="year">Year</option>
+  </select>
+</div>
               </div>
             </div>
           )}
@@ -652,33 +675,33 @@ const handleLogoRemove = () => {
       <input
         type="checkbox"
         checked={isExperienceRange}
-        onChange={e => {
-          setIsExperienceRange(e.target.checked);
-          setForm(f => ({ ...f, experience: { min: "", max: "", type: "year" } }));
-        }}
+       onChange={e => {
+  setIsExperienceRange(e.target.checked);
+  setForm(f => ({ ...f, experience: { number: "", min: "", max: "", type: "year" } }));
+}}
         style={{ cursor: "pointer", accentColor: "#111827" }}
       />
       Use Experience Range
     </label>
   </div>
   {!isExperienceRange ? (
-    <div style={{ display: "flex", gap: 8 }}>
-      <Input
-        type="number"
-        value={form.experience.min}
-        onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, min: v } }))}
-        placeholder="e.g. 3 or 5.5"
-      />
-      <select
-        value={form.experience.type || "year"}
-        onChange={e => setForm(f => ({ ...f, experience: { ...f.experience, type: e.target.value } }))}
-        style={{ padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
-      >
-        <option value="year">Years</option>
-        <option value="month">Months</option>
-      </select>
-    </div>
-  ) : (
+  <div style={{ display: "flex", gap: 8 }}>
+    <Input
+      type="number"
+      value={form.experience.number || ""}  
+      onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, number: v } }))}
+      placeholder="e.g. 3 or 5.5"
+    />
+    <select
+      value={form.experience.type || "year"}
+      onChange={e => setForm(f => ({ ...f, experience: { ...f.experience, type: e.target.value } }))}
+      style={{ padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
+    >
+      <option value="year">Years</option>
+      <option value="month">Months</option>
+    </select>
+  </div>
+) : (
     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
       <Input
         type="number"
