@@ -48,8 +48,52 @@ export const getOrganizationByIdApi = (id) =>
 export const deleteOrganizationApi = (id) =>
   axiosInstance.delete(`/organizations/${id}`);
 
-export const adminPostJobApi = (data) =>
-  axiosInstance.post("/jobs", data);
+export const adminPostJobApi = (data) => axiosInstance.post("/jobs", data);
+
+// ── Admin Job Edit APIs ─────────────────────────────
+
+// Get all jobs by organization
+export const getJobsByOrganizationApi = async (organizationId) => {
+  try {
+    const response = await axiosInstance.get(`/jobs/${organizationId}`);
+
+    return response.data;
+  } catch (error) {
+    console.error("Get Organization Jobs Error:", error);
+
+    throw error;
+  }
+};
+
+// Get single job details
+export const getAdminJobByIdApi = async (jobId) => {
+  try {
+    const response = await axiosInstance.get(`/job/${jobId}`);
+
+    return response.data;
+  } catch (error) {
+    console.error("Get Job Details Error:", error);
+
+    throw error;
+  }
+};
+
+// Update existing job
+export const updateAdminJobApi = async (jobId, payload) => {
+  try {
+    const response = await axiosInstance.patch(`/job/${jobId}`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Update Job Error:", error);
+
+    throw error;
+  }
+};
 
 // export const updateSubscriptionStatusApi = (id, status) =>
 //   axiosInstance.patch(`/organizations/${id}/subscription`, { status });
@@ -64,7 +108,7 @@ export const createPromoApi = (payload) =>
   axiosInstance.post("/promo/create", payload);
 
 export const editPromoApi = (id, data) =>
- axiosInstance.patch(`/promo/${id}`, data);
+  axiosInstance.patch(`/promo/${id}`, data);
 
 export const togglePromoApi = (id) =>
   axiosInstance.patch(`/promo/${id}/toggle`);
@@ -329,3 +373,20 @@ export async function PostSkills(payload) {
     throw error;
   }
 }
+export const uploadLogoApi = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosInstance.post("/upload/logo", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Upload Logo Error:", error);
+    throw error;
+  }
+};

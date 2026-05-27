@@ -107,7 +107,7 @@ export default function AddCompany() {
   const [locations, setLocations] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [clouds, setClouds] = useState([]);
-  const [certifications, setCertifications] = useState([]);
+  // const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const { message } = App.useApp();
 
@@ -134,7 +134,7 @@ export default function AddCompany() {
           locations,
           specialties,
           clouds,
-          certifications,
+          // certifications,
           partnerTier: values.partnerTier,
           partnerType: values.partnerType,
           socialLinks: {
@@ -158,7 +158,7 @@ export default function AddCompany() {
       setLocations([]);
       setSpecialties([]);
       setClouds([]);
-      setCertifications([]);
+      // setCertifications([]);
       // } catch (err) {
       //   message.error(err?.response?.data?.message || "Error creating company");
       // }
@@ -341,7 +341,7 @@ export default function AddCompany() {
             />
           </Form.Item>
 
-          <Divider />
+          {/* <Divider />
 
           <Form.Item label="Certifications">
             <TagInput
@@ -349,7 +349,7 @@ export default function AddCompany() {
               onChange={setCertifications}
               placeholder="e.g. Salesforce Admin"
             />
-          </Form.Item>
+          </Form.Item> */}
         </Card>
 
         {/* 🔹 PARTNER */}

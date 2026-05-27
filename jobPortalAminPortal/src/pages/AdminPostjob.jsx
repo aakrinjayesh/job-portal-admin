@@ -1,17 +1,26 @@
 import { useState, useEffect } from "react";
 import {
-  getOrganizationsApi,       // GET /admin/organizations
-  adminPostJobApi,           // POST /admin/jobs
+  getOrganizationsApi, // GET /admin/organizations
+  adminPostJobApi,
+  uploadLogoApi, // POST /admin/jobs
+  getJobsByOrganizationApi,
+  getAdminJobByIdApi,
+  updateAdminJobApi,
 } from "../api/api";
 import ScreeningQuestionsStep from "./ScreeningQuestionsStep";
 import {
-  GetSkills, PostSkills,
-  GetClouds, PostClouds,
-  GetRole, PostRole,
-  GetCertifications, PostCertifications,
-  GetLocations, PostLocations,
+  GetSkills,
+  PostSkills,
+  GetClouds,
+  PostClouds,
+  GetRole,
+  PostRole,
+  GetCertifications,
+  PostCertifications,
+  GetLocations,
+  PostLocations,
 } from "../api/api";
-import { message } from "antd"; 
+import { message } from "antd";
 import ReusableSelect from "./ReusableSelect"; // adjust path
 
 // ── Add these to your api.js ──────────────────────────────
@@ -21,7 +30,13 @@ import ReusableSelect from "./ReusableSelect"; // adjust path
 //   axios.post("/admin/jobs", data);
 // ─────────────────────────────────────────────────────────
 
-const EMPLOYMENT_TYPES = ["FullTime", "PartTime", "Contract", "Freelancer", "Internship"];
+const EMPLOYMENT_TYPES = [
+  "FullTime",
+  "PartTime",
+  "Contract",
+  "Freelancer",
+  "Internship",
+];
 const EXPERIENCE_LEVELS = ["Internship", "EntryLevel", "Mid", "Senior", "Lead"];
 const JOB_TYPES = ["Remote", "Hybrid", "Onsite"];
 const APPLICANT_SOURCES = ["Both", "Candidate", "Company"];
@@ -36,20 +51,34 @@ function Toast({ message, type, onDone }) {
     return () => clearTimeout(t);
   }, [onDone]);
 
-  const colors = {
-    success: { bg: "#ECFDF5", border: "#6EE7B7", color: "#065F46" },
-    error:   { bg: "#FEF2F2", border: "#FCA5A5", color: "#991B1B" },
-    info:    { bg: "#F0F9FF", border: "#BAE6FD", color: "#0C4A6E" },
-  }[type] || {};
+  const colors =
+    {
+      success: { bg: "#ECFDF5", border: "#6EE7B7", color: "#065F46" },
+      error: { bg: "#FEF2F2", border: "#FCA5A5", color: "#991B1B" },
+      info: { bg: "#F0F9FF", border: "#BAE6FD", color: "#0C4A6E" },
+    }[type] || {};
 
   return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 1000,
-      display: "flex", alignItems: "center", gap: 10,
-      background: colors.bg, border: `1px solid ${colors.border}`, color: colors.color,
-      borderRadius: 10, padding: "12px 18px", fontSize: 13, fontWeight: 500,
-      boxShadow: "0 4px 20px rgba(0,0,0,0.10)", animation: "slideUp 0.2s ease",
-    }}>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        background: colors.bg,
+        border: `1px solid ${colors.border}`,
+        color: colors.color,
+        borderRadius: 10,
+        padding: "12px 18px",
+        fontSize: 13,
+        fontWeight: 500,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.10)",
+        animation: "slideUp 0.2s ease",
+      }}
+    >
       <span>{type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"}</span>
       {message}
     </div>
@@ -58,8 +87,17 @@ function Toast({ message, type, onDone }) {
 
 function Label({ children, required }) {
   return (
-    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6, letterSpacing: "0.01em" }}>
-      {children}{required && <span style={{ color: "#EF4444", marginLeft: 3 }}>*</span>}
+    <div
+      style={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: "#374151",
+        marginBottom: 6,
+        letterSpacing: "0.01em",
+      }}
+    >
+      {children}
+      {required && <span style={{ color: "#EF4444", marginLeft: 3 }}>*</span>}
     </div>
   );
 }
@@ -69,19 +107,24 @@ function Input({ value, onChange, placeholder, type = "text", disabled }) {
     <input
       type={type}
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
       style={{
-        width: "100%", padding: "9px 12px",
-        border: "1px solid #E5E7EB", borderRadius: 8,
-        fontSize: 13, color: "#111827", background: disabled ? "#F9FAFB" : "#fff",
-        outline: "none", fontFamily: "inherit",
+        width: "100%",
+        padding: "9px 12px",
+        border: "1px solid #E5E7EB",
+        borderRadius: 8,
+        fontSize: 13,
+        color: "#111827",
+        background: disabled ? "#F9FAFB" : "#fff",
+        outline: "none",
+        fontFamily: "inherit",
         transition: "border-color 0.15s",
         boxSizing: "border-box",
       }}
-      onFocus={e => e.target.style.borderColor = "#6B7280"}
-      onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+      onFocus={(e) => (e.target.style.borderColor = "#6B7280")}
+      onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
     />
   );
 }
@@ -90,18 +133,25 @@ function Textarea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
       style={{
-        width: "100%", padding: "9px 12px",
-        border: "1px solid #E5E7EB", borderRadius: 8,
-        fontSize: 13, color: "#111827", background: "#fff",
-        outline: "none", fontFamily: "inherit", resize: "vertical",
-        lineHeight: 1.6, boxSizing: "border-box",
+        width: "100%",
+        padding: "9px 12px",
+        border: "1px solid #E5E7EB",
+        borderRadius: 8,
+        fontSize: 13,
+        color: "#111827",
+        background: "#fff",
+        outline: "none",
+        fontFamily: "inherit",
+        resize: "vertical",
+        lineHeight: 1.6,
+        boxSizing: "border-box",
       }}
-      onFocus={e => e.target.style.borderColor = "#6B7280"}
-      onBlur={e => e.target.style.borderColor = "#E5E7EB"}
+      onFocus={(e) => (e.target.style.borderColor = "#6B7280")}
+      onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
     />
   );
 }
@@ -110,20 +160,31 @@ function Select({ value, onChange, options, placeholder }) {
   return (
     <select
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
       style={{
-        width: "100%", padding: "9px 12px",
-        border: "1px solid #E5E7EB", borderRadius: 8,
-        fontSize: 13, color: value ? "#111827" : "#9CA3AF",
-        background: "#fff", outline: "none", fontFamily: "inherit",
-        cursor: "pointer", boxSizing: "border-box", appearance: "none",
+        width: "100%",
+        padding: "9px 12px",
+        border: "1px solid #E5E7EB",
+        borderRadius: 8,
+        fontSize: 13,
+        color: value ? "#111827" : "#9CA3AF",
+        background: "#fff",
+        outline: "none",
+        fontFamily: "inherit",
+        cursor: "pointer",
+        boxSizing: "border-box",
+        appearance: "none",
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-        backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "right 12px center",
       }}
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map(o => (
-        <option key={typeof o === "string" ? o : o.value} value={typeof o === "string" ? o : o.value}>
+      {options.map((o) => (
+        <option
+          key={typeof o === "string" ? o : o.value}
+          value={typeof o === "string" ? o : o.value}
+        >
           {typeof o === "string" ? o : o.label}
         </option>
       ))}
@@ -141,27 +202,96 @@ function TagInput({ tags, onChange, placeholder }) {
     setInput("");
   };
 
-  const remove = (tag) => onChange(tags.filter(t => t !== tag));
+  const remove = (tag) => onChange(tags.filter((t) => t !== tag));
 
   return (
-    <div style={{ border: "1px solid #E5E7EB", borderRadius: 8, padding: "6px 8px", background: "#fff", minHeight: 42 }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: tags.length ? 6 : 0 }}>
-        {tags.map(tag => (
-          <span key={tag} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#F3F4F6", border: "1px solid #E5E7EB", borderRadius: 6, padding: "2px 8px", fontSize: 12, fontWeight: 500, color: "#374151" }}>
+    <div
+      style={{
+        border: "1px solid #E5E7EB",
+        borderRadius: 8,
+        padding: "6px 8px",
+        background: "#fff",
+        minHeight: 42,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 6,
+          marginBottom: tags.length ? 6 : 0,
+        }}
+      >
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              background: "#F3F4F6",
+              border: "1px solid #E5E7EB",
+              borderRadius: 6,
+              padding: "2px 8px",
+              fontSize: 12,
+              fontWeight: 500,
+              color: "#374151",
+            }}
+          >
             {tag}
-            <button onClick={() => remove(tag)} style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", fontSize: 12, padding: 0, lineHeight: 1 }}>×</button>
+            <button
+              onClick={() => remove(tag)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#9CA3AF",
+                fontSize: 12,
+                padding: 0,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
           </span>
         ))}
       </div>
       <div style={{ display: "flex", gap: 6 }}>
         <input
           value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
           placeholder={placeholder}
-          style={{ flex: 1, border: "none", outline: "none", fontSize: 13, color: "#111827", fontFamily: "inherit", padding: "2px 4px" }}
+          style={{
+            flex: 1,
+            border: "none",
+            outline: "none",
+            fontSize: 13,
+            color: "#111827",
+            fontFamily: "inherit",
+            padding: "2px 4px",
+          }}
         />
-        <button onClick={add} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", border: "1px solid #E5E7EB", borderRadius: 6, background: "#F9FAFB", color: "#374151", cursor: "pointer" }}>Add</button>
+        <button
+          onClick={add}
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "3px 10px",
+            border: "1px solid #E5E7EB",
+            borderRadius: 6,
+            background: "#F9FAFB",
+            color: "#374151",
+            cursor: "pointer",
+          }}
+        >
+          Add
+        </button>
       </div>
     </div>
   );
@@ -170,21 +300,81 @@ function TagInput({ tags, onChange, placeholder }) {
 // Screening question row
 function QuestionRow({ q, index, onChange, onRemove }) {
   return (
-    <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "#6B7280" }}>Question {index + 1}</span>
-        <button onClick={onRemove} style={{ background: "none", border: "none", cursor: "pointer", color: "#EF4444", fontSize: 13, fontWeight: 600, padding: "2px 6px" }}>Remove</button>
+    <div
+      style={{
+        background: "#F9FAFB",
+        border: "1px solid #E5E7EB",
+        borderRadius: 10,
+        padding: "14px 16px",
+        marginBottom: 10,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 10,
+        }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, color: "#6B7280" }}>
+          Question {index + 1}
+        </span>
+        <button
+          onClick={onRemove}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "#EF4444",
+            fontSize: 13,
+            fontWeight: 600,
+            padding: "2px 6px",
+          }}
+        >
+          Remove
+        </button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 160px 80px", gap: 10, marginBottom: 8 }}>
-        <Input value={q.question} onChange={v => onChange({ ...q, question: v })} placeholder="Question text…" />
-        <Select value={q.type} onChange={v => onChange({ ...q, type: v })} options={QUESTION_TYPES} />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 160px 80px",
+          gap: 10,
+          marginBottom: 8,
+        }}
+      >
+        <Input
+          value={q.question}
+          onChange={(v) => onChange({ ...q, question: v })}
+          placeholder="Question text…"
+        />
+        <Select
+          value={q.type}
+          onChange={(v) => onChange({ ...q, type: v })}
+          options={QUESTION_TYPES}
+        />
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <input type="checkbox" checked={q.required} onChange={e => onChange({ ...q, required: e.target.checked })} id={`req-${index}`} style={{ cursor: "pointer" }} />
-          <label htmlFor={`req-${index}`} style={{ fontSize: 12, color: "#374151", cursor: "pointer" }}>Required</label>
+          <input
+            type="checkbox"
+            checked={q.required}
+            onChange={(e) => onChange({ ...q, required: e.target.checked })}
+            id={`req-${index}`}
+            style={{ cursor: "pointer" }}
+          />
+          <label
+            htmlFor={`req-${index}`}
+            style={{ fontSize: 12, color: "#374151", cursor: "pointer" }}
+          >
+            Required
+          </label>
         </div>
       </div>
       {q.type === "SELECT" && (
-        <TagInput tags={q.options} onChange={opts => onChange({ ...q, options: opts })} placeholder="Add option, press Enter…" />
+        <TagInput
+          tags={q.options}
+          onChange={(opts) => onChange({ ...q, options: opts })}
+          placeholder="Add option, press Enter…"
+        />
       )}
     </div>
   );
@@ -192,21 +382,43 @@ function QuestionRow({ q, index, onChange, onRemove }) {
 
 function SectionCard({ title, icon, children }) {
   return (
-    <div style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, marginBottom: 20, overflow: "hidden" }}>
-      <div style={{ padding: "14px 20px", borderBottom: "1px solid #F3F4F6", display: "flex", alignItems: "center", gap: 8 }}>
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #E5E7EB",
+        borderRadius: 12,
+        marginBottom: 20,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          padding: "14px 20px",
+          borderBottom: "1px solid #F3F4F6",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
         <span style={{ fontSize: 15 }}>{icon}</span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{title}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>
+          {title}
+        </span>
       </div>
-      <div style={{ padding: "20px" }}>
-        {children}
-      </div>
+      <div style={{ padding: "20px" }}>{children}</div>
     </div>
   );
 }
 
 function Grid({ cols = 2, children }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 16 }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap: 16,
+      }}
+    >
       {children}
     </div>
   );
@@ -256,229 +468,376 @@ const QUESTION_TYPE_OPTIONS = [
 export default function AdminPostjob() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [organizations, setOrganizations] = useState([]);
-  const [orgMembers, setOrgMembers]       = useState([]);
-  const [loadingOrgs, setLoadingOrgs]     = useState(true);
-  const [saving, setSaving]               = useState(false);
-  const [toast, setToast]                 = useState(null);
+  const [orgMembers, setOrgMembers] = useState([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
   const [orgDisplayName, setOrgDisplayName] = useState("");
   const [logoError, setLogoError] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
   const [isExperienceRange, setIsExperienceRange] = useState(false);
   const [isSalaryRange, setIsSalaryRange] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [logoUploading, setLogoUploading] = useState(false);
+
+  const [organizationJobs, setOrganizationJobs] = useState([]);
+
+  const [editingJobId, setEditingJobId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState("");
 
   // ── SCREENING QUESTIONS STATE ──────────────────────────
   const [screeningQuestions, setScreeningQuestions] = useState([]);
 
   useEffect(() => {
-  if (form.jobType === "Remote") {
-    set("location")(["Remote"]);
-  }
-}, [form.jobType]);
+    if (form.jobType === "Remote") {
+      set("location")(["Remote"]);
+    }
+  }, [form.jobType]);
 
   // Load organizations for the dropdown
- useEffect(() => {
-  setLoadingOrgs(true);
-  getOrganizationsApi({ limit: 100 })
-    .then(res => {
-      console.log("API response:", res.data); // 👈 check this first
-      const orgs = res.data?.organizations || res.data?.data || res.data || [];
-      console.log("Orgs extracted:", orgs);   // 👈 should be an array
-      setOrganizations(orgs);
-    })
-    .catch((err) => {
-      console.error("Org fetch error:", err);
-      setToast({ message: "Failed to load organizations", type: "error" });
-    })
-    .finally(() => setLoadingOrgs(false));
-}, []);
+  useEffect(() => {
+    setLoadingOrgs(true);
+    getOrganizationsApi({ limit: 100 })
+      .then((res) => {
+        console.log("API response:", res.data); // 👈 check this first
+        const orgs =
+          res.data?.organizations || res.data?.data || res.data || [];
+        console.log("Orgs extracted:", orgs); // 👈 should be an array
+        setOrganizations(orgs);
+      })
+      .catch((err) => {
+        console.error("Org fetch error:", err);
+        setToast({ message: "Failed to load organizations", type: "error" });
+      })
+      .finally(() => setLoadingOrgs(false));
+  }, []);
 
-const validateScreeningQuestions = () => {
-  for (let i = 0; i < screeningQuestions.length; i++) {
-    const q = screeningQuestions[i];
-    if (!q.question.trim()) {
-      messageApi.error(`Question ${i + 1} cannot be empty`);
-      return false;
+  const validateScreeningQuestions = () => {
+    for (let i = 0; i < screeningQuestions.length; i++) {
+      const q = screeningQuestions[i];
+      if (!q.question.trim()) {
+        messageApi.error(`Question ${i + 1} cannot be empty`);
+        return false;
+      }
+      if (q.type === "SELECT" && q.options.length < 2) {
+        messageApi.error(
+          `Question ${i + 1} (Multiple Choice) needs at least 2 options`,
+        );
+        return false;
+      }
     }
-    if (q.type === "SELECT" && q.options.length < 2) {
-      messageApi.error(`Question ${i + 1} (Multiple Choice) needs at least 2 options`);
-      return false;
-    }
-  }
-  return true;
-};
+    return true;
+  };
 
   // When org changes, populate members dropdown + companyName
-  const handleOrgChange = (orgId) => {
-  const org = organizations.find(o => o.id === orgId);
+  // const handleOrgChange = (orgId) => {
+  //   const org = organizations.find((o) => o.id === orgId);
 
-  setOrgDisplayName(org?.name || "");
-  setOrgMembers(org?.members || []);
+  //   setOrgDisplayName(org?.name || "");
+  //   setOrgMembers(org?.members || []);
 
-  setForm(f => ({
-    ...f,
-    organizationId: orgId,
-    postedById: "",
+  //   setForm((f) => ({
+  //     ...f,
+  //     organizationId: orgId,
+  //     postedById: "",
 
-    // ✅ keep existing values untouched
-    companyName: f.companyName,
-    companyLogo: f.companyLogo,
-  }));
-};
+  //     // ✅ keep existing values untouched
+  //     companyName: f.companyName,
+  //     companyLogo: f.companyLogo,
+  //   }));
+  // };
 
-  const set = (field) => (val) => setForm(f => ({ ...f, [field]: val }));
+  const handleOrgChange = async (orgId) => {
+    const org = organizations.find((o) => o.id === orgId);
 
-  const addQuestion = () => setForm(f => ({
-    ...f,
-    questions: [...f.questions, { question: "", type: "TEXT", options: [], required: true, order: f.questions.length }],
-  }));
+    setOrgDisplayName(org?.name || "");
 
-  const updateQuestion = (i, q) => setForm(f => ({
-    ...f,
-    questions: f.questions.map((x, idx) => idx === i ? q : x),
-  }));
+    setOrgMembers(org?.members || []);
 
-  const removeQuestion = (i) => setForm(f => ({
-    ...f,
-    questions: f.questions.filter((_, idx) => idx !== i),
-  }));
+    setForm((f) => ({
+      ...f,
+      organizationId: orgId,
+    }));
 
- const validate = () => {
-  if (!form.organizationId)          return "Select an organization";
-  if (!form.role || (typeof form.role === "string" && !form.role.trim()))
-                                      return "Job role is required";
-  if (!form.description.trim())      return "Description is required";
-  if (!form.employmentType)          return "Select employment type";
-  if (!form.jobType)                 return "Select job type";
-   if (!form.skills || form.skills.length === 0)
-    return "At least one skill is required";
+    // ONLY FOR EDIT MODE
 
-  if (!form.clouds || form.clouds.length === 0)
-    return "At least one cloud is required";
-  // if (!form.salary.trim())           return "Salary is required";
-  // if (!form.responsibilities.trim()) return "Responsibilities are required";
-  if (NEEDS_TENURE.includes(form.employmentType) && !form.tenure.number)
-                                      return "Tenure is required for this employment type";
-  return null;
-};
+    if (isEditMode) {
+      try {
+        const res = await getJobsByOrganizationApi(orgId);
 
-const questionsPayload = screeningQuestions
-  .filter(q => q.question.trim() !== "")
-  .map((q, index) => ({
-    question: q.question.trim(),
-    type: q.type,
-    required: q.required,
-    options: q.type === "SELECT" ? q.options : [],
-    order: index,
-  }));
+        console.log("Jobs response:", res);
+
+        setOrganizationJobs(res.jobs || []);
+      } catch (error) {
+        console.error("Organization Jobs Error:", error);
+      }
+    }
+  };
+  const loadJob = async (jobId) => {
+    try {
+      const res = await getAdminJobByIdApi(jobId);
+
+      const job = res.job;
+
+      setEditingJobId(job.id);
+
+      setForm({
+        ...EMPTY_FORM,
+
+        ...job,
+
+        experience: job.experience || {
+          min: "",
+          max: "",
+          type: "year",
+        },
+
+        tenure: job.tenure || {
+          number: "",
+          type: "month",
+        },
+      });
+      setLogoPreview(job.companyLogo || "");
+      // ADD THIS
+      setScreeningQuestions(job.questions || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const set = (field) => (val) => setForm((f) => ({ ...f, [field]: val }));
+
+  const addQuestion = () =>
+    setForm((f) => ({
+      ...f,
+      questions: [
+        ...f.questions,
+        {
+          question: "",
+          type: "TEXT",
+          options: [],
+          required: true,
+          order: f.questions.length,
+        },
+      ],
+    }));
+
+  const updateQuestion = (i, q) =>
+    setForm((f) => ({
+      ...f,
+      questions: f.questions.map((x, idx) => (idx === i ? q : x)),
+    }));
+
+  const removeQuestion = (i) =>
+    setForm((f) => ({
+      ...f,
+      questions: f.questions.filter((_, idx) => idx !== i),
+    }));
+
+  const validate = () => {
+    if (!form.organizationId) return "Select an organization";
+    if (!form.role || (typeof form.role === "string" && !form.role.trim()))
+      return "Job role is required";
+    if (!form.description.trim()) return "Description is required";
+    if (!form.employmentType) return "Select employment type";
+    if (!form.jobType) return "Select job type";
+    if (!form.skills || form.skills.length === 0)
+      return "At least one skill is required";
+
+    if (!form.clouds || form.clouds.length === 0)
+      return "At least one cloud is required";
+    // if (!form.salary.trim())           return "Salary is required";
+    // if (!form.responsibilities.trim()) return "Responsibilities are required";
+    if (NEEDS_TENURE.includes(form.employmentType) && !form.tenure.number)
+      return "Tenure is required for this employment type";
+    return null;
+  };
+
+  const questionsPayload = screeningQuestions
+    .filter((q) => q.question.trim() !== "")
+    .map((q, index) => ({
+      question: q.question.trim(),
+      type: q.type,
+      required: q.required,
+      options: q.type === "SELECT" ? q.options : [],
+      order: index,
+    }));
 
   const handleSubmit = async () => {
     const err = validate();
-    if (err) { 
-      console.log("Validation error:", err); 
-      setToast({ message: err, type: "error" }); return; }
+    if (err) {
+      console.log("Validation error:", err);
+      setToast({ message: err, type: "error" });
+      return;
+    }
 
-      if (!validateScreeningQuestions()) return;
+    if (!validateScreeningQuestions()) return;
 
     setSaving(true);
-    
+
     try {
       const payload = {
-        organizationId:    form.organizationId,
-        postedById:        form.postedById || undefined,
-        role:              form.role,
-        description:       form.description,
-        employmentType:    form.employmentType,
-        experienceLevel:   form.experienceLevel || undefined,
-      experience: isExperienceRange
-  ? (form.experience.min || form.experience.max)
-    ? { min: form.experience.min, max: form.experience.max, type: form.experience.type }
-    : undefined
-  : form.experience.number
-    ? { number: form.experience.number, type: form.experience.type }
-    : undefined,
-        tenure:            NEEDS_TENURE.includes(form.employmentType)
-                             ? { number: form.tenure.number, type: form.tenure.type }
-                             : undefined,
-     location: form.jobType === "Remote"
-  ? "Remote"
-  : Array.isArray(form.location)
-    ? form.location.join(", ")
-    : form.location || undefined,
-        skills:            form.skills,
-        clouds:            form.clouds,
+        organizationId: form.organizationId,
+        postedById: form.postedById || undefined,
+        role: form.role,
+        description: form.description,
+        employmentType: form.employmentType,
+        experienceLevel: form.experienceLevel || undefined,
+        experience: isExperienceRange
+          ? form.experience.min || form.experience.max
+            ? {
+                min: form.experience.min,
+                max: form.experience.max,
+                type: form.experience.type,
+              }
+            : undefined
+          : form.experience.number
+            ? { number: form.experience.number, type: form.experience.type }
+            : undefined,
+        tenure: NEEDS_TENURE.includes(form.employmentType)
+          ? { number: form.tenure.number, type: form.tenure.type }
+          : undefined,
+        location: Array.isArray(form.location)
+          ? form.location.join(", ")
+          : form.location || undefined,
+        skills: form.skills,
+        clouds: form.clouds,
         questions: questionsPayload,
-     salary: isSalaryRange
-  ? `${form.salaryMin} - ${form.salaryMax}`
-  : form.salary,
-        companyName:       form.companyName || undefined,
-        responsibilities:  form.responsibilities,
-        certifications:    form.certifications,
-        jobType:           form.jobType,
+        salary: isSalaryRange
+          ? `${form.salaryMin} - ${form.salaryMax}`
+          : form.salary,
+        companyName: form.companyName || undefined,
+        responsibilities: form.responsibilities,
+        certifications: form.certifications,
+        jobType: form.jobType,
         applicationDeadline: form.applicationDeadline || undefined,
-        ApplicationLimit:  form.ApplicationLimit ? parseInt(form.ApplicationLimit) : undefined,
-        companyLogo:       form.companyLogo || undefined,
-        applicantSource:   form.applicantSource,
-        questions:         form.questions,
+        ApplicationLimit: form.ApplicationLimit
+          ? parseInt(form.ApplicationLimit)
+          : undefined,
+        companyLogo: form.companyLogo || undefined,
+        applicantSource: form.applicantSource,
+        questions: form.questions,
       };
-console.log("Submitting payload:", payload); 
-      await adminPostJobApi(payload);
+      console.log("Submitting payload:", payload);
+      // await adminPostJobApi(payload);
+      if (editingJobId) {
+        await updateAdminJobApi(editingJobId, payload);
+
+        setToast({
+          message: "Job updated successfully!",
+          type: "success",
+        });
+      } else {
+        await adminPostJobApi(payload);
+
+        setToast({
+          message: "Job posted successfully!",
+          type: "success",
+        });
+      }
       setToast({ message: "Job posted successfully!", type: "success" });
       setForm(EMPTY_FORM);
       setOrgMembers([]);
-      setOrgDisplayName(""); 
+      setOrgDisplayName("");
       setScreeningQuestions([]);
+      setIsEditMode(false);
+      setEditingJobId(null);
+      setSelectedJobId("");
+      setOrganizationJobs([]);
     } catch (e) {
-      console.error("Submit error:", e);  
-      setToast({ message: e?.response?.data?.message || "Failed to post job", type: "error" });
+      console.error("Submit error:", e);
+      setToast({
+        message: e?.response?.data?.message || "Failed to post job",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
   };
 
- const handleReset = () => {
-  setForm(EMPTY_FORM);
-  setOrgMembers([]);
-  setOrgDisplayName("");
-  setLogoPreview("");
-  setLogoError("");
-  setIsExperienceRange(false); // ← add this too
-  setScreeningQuestions([]);
-};
+  const handleReset = () => {
+    setForm(EMPTY_FORM);
+    setOrgMembers([]);
+    setOrgDisplayName("");
+    setLogoPreview("");
+    setLogoError("");
+    setIsExperienceRange(false); // ← add this too
+    setScreeningQuestions([]);
+    setIsEditMode(false);
 
-  
+    setEditingJobId(null);
 
-const handleLogoUpload = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    setSelectedJobId("");
 
-  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-  if (!allowedTypes.includes(file.type)) {
-    setLogoError("Only JPG and PNG files are allowed");
-    return;
-  }
-  if (file.size > 2 * 1024 * 1024) {
-    setLogoError("File size exceeds 2MB");
-    return;
-  }
-
-  setLogoError("");
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    setLogoPreview(ev.target.result);
-    setForm(f => ({ ...f, companyLogo: ev.target.result }));
+    setOrganizationJobs([]);
   };
-  reader.readAsDataURL(file);
-};
 
-const handleLogoRemove = () => {
-  setLogoPreview("");
-  setLogoError("");
-  setForm(f => ({ ...f, companyLogo: "" }));
-};
+  // const handleLogoUpload = (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  //   if (!allowedTypes.includes(file.type)) {
+  //     setLogoError("Only JPG and PNG files are allowed");
+  //     return;
+  //   }
+  //   if (file.size > 2 * 1024 * 1024) {
+  //     setLogoError("File size exceeds 2MB");
+  //     return;
+  //   }
+
+  //   setLogoError("");
+  //   const reader = new FileReader();
+  //   reader.onload = (ev) => {
+  //     setLogoPreview(ev.target.result);
+  //     setForm(f => ({ ...f, companyLogo: ev.target.result }));
+  //   };
+  //   reader.readAsDataURL(file);
+  // };
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      setLogoError("Only JPG and PNG files are allowed");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("File size exceeds 2MB");
+      return;
+    }
+
+    setLogoError("");
+    setLogoUploading(true);
+
+    try {
+      const { url } = await uploadLogoApi(file);
+      setLogoPreview(url);
+      setForm((f) => ({ ...f, companyLogo: url }));
+    } catch (err) {
+      setLogoError("Logo upload failed. Please try again.");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleLogoRemove = () => {
+    setLogoPreview("");
+    setLogoError("");
+    setForm((f) => ({ ...f, companyLogo: "" }));
+  };
 
   return (
-    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", minHeight: "100vh", background: "#F8FAFC", color: "#111827" }}>
+    <div
+      style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        minHeight: "100vh",
+        background: "#F8FAFC",
+        color: "#111827",
+      }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
         @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -490,68 +849,192 @@ const handleLogoRemove = () => {
       `}</style>
 
       {/* ── Header ── */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E5E7EB", padding: "0 32px" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
+      <div
+        style={{
+          background: "#fff",
+          borderBottom: "1px solid #E5E7EB",
+          padding: "0 32px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 860,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: 60,
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#111827", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "#111827",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <span style={{ color: "#fff", fontSize: 14 }}>💼</span>
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Post a Job</div>
-              <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "'DM Mono', monospace" }}>Admin · Jobs</div>
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Post a Job
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#9CA3AF",
+                  fontFamily: "'DM Mono', monospace",
+                }}
+              >
+                Admin · Jobs
+              </div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={handleReset} style={{ fontSize: 13, fontWeight: 500, padding: "7px 14px", border: "1px solid #E5E7EB", borderRadius: 8, background: "transparent", color: "#374151", cursor: "pointer" }}>
+            <button
+              onClick={handleReset}
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                padding: "7px 14px",
+                border: "1px solid #E5E7EB",
+                borderRadius: 8,
+                background: "transparent",
+                color: "#374151",
+                cursor: "pointer",
+              }}
+            >
               Reset
             </button>
             <button
               onClick={handleSubmit}
               disabled={saving}
-              style={{ fontSize: 13, fontWeight: 600, padding: "7px 20px", border: "none", borderRadius: 8, background: saving ? "#9CA3AF" : "#111827", color: "#fff", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                padding: "7px 20px",
+                border: "none",
+                borderRadius: 8,
+                background: saving ? "#9CA3AF" : "#111827",
+                color: "#fff",
+                cursor: saving ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
             >
-              {saving && <span style={{ width: 12, height: 12, border: "2px solid #ffffff60", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />}
-              {saving ? "Posting…" : "Post Job"}
+              {saving && (
+                <span
+                  style={{
+                    width: 12,
+                    height: 12,
+                    border: "2px solid #ffffff60",
+                    borderTopColor: "#fff",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    animation: "spin 0.7s linear infinite",
+                  }}
+                />
+              )}
+              {/* {saving ? "Posting…" : "Post Job"} */}
+              {saving
+                ? editingJobId
+                  ? "Updating..."
+                  : "Posting..."
+                : editingJobId
+                  ? "Update Job"
+                  : "Post Job"}
+            </button>
+            <button
+              onClick={() => {
+                console.log("Edit clicked");
+                setIsEditMode(true);
+
+                setForm(EMPTY_FORM);
+
+                setEditingJobId(null);
+
+                setSelectedJobId("");
+
+                setOrganizationJobs([]);
+
+                setOrgDisplayName("");
+              }}
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                padding: "7px 14px",
+                border: "1px solid #E5E7EB",
+                borderRadius: 8,
+                background: isEditMode ? "#111827" : "#fff",
+                color: isEditMode ? "#fff" : "#374151",
+
+                cursor: "pointer",
+              }}
+            >
+              Edit Job
             </button>
           </div>
         </div>
       </div>
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "28px 32px" }}>
-
         {/* ── 1. Organization ── */}
         <SectionCard title="Organization" icon="🏢">
           <Grid cols={2}>
-        <Field>
-  <Label required>Organization</Label>
-  {loadingOrgs ? (
-    <div style={{ fontSize: 13, color: "#9CA3AF", padding: "9px 0" }}>Loading organizations…</div>
-  ) : (
-    <>
-      <input
-        list="org-list"
-        value={orgDisplayName}
-        onChange={e => {
-          setOrgDisplayName(e.target.value);
-          const org = organizations.find(o => o.name === e.target.value);
-          if (org) handleOrgChange(org.id);  // sets organizationId in form
-        }}
-        placeholder="Search or select organization…"
-        style={{
-          width: "100%", padding: "9px 12px",
-          border: "1px solid #E5E7EB", borderRadius: 8,
-          fontSize: 13, color: "#111827", background: "#fff",
-          outline: "none", fontFamily: "inherit", boxSizing: "border-box",
-        }}
-      />
-      <datalist id="org-list">
-        {organizations.map(o => (
-          <option key={o.id} value={o.name} />
-        ))}
-      </datalist>
-    </>
-  )}
-</Field>
+            <Field>
+              <Label required>Organization</Label>
+              {loadingOrgs ? (
+                <div
+                  style={{ fontSize: 13, color: "#9CA3AF", padding: "9px 0" }}
+                >
+                  Loading organizations…
+                </div>
+              ) : (
+                <>
+                  <input
+                    list="org-list"
+                    value={orgDisplayName}
+                    onChange={(e) => {
+                      setOrgDisplayName(e.target.value);
+                      const org = organizations.find(
+                        (o) => o.name === e.target.value,
+                      );
+                      if (org) handleOrgChange(org.id); // sets organizationId in form
+                    }}
+                    placeholder="Search or select organization…"
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      color: "#111827",
+                      background: "#fff",
+                      outline: "none",
+                      fontFamily: "inherit",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <datalist id="org-list">
+                    {organizations.map((o) => (
+                      <option key={o.id} value={o.name} />
+                    ))}
+                  </datalist>
+                </>
+              )}
+            </Field>
             {/* <Field>
               <Label>Posted By (Member)</Label>
               <Select
@@ -567,34 +1050,70 @@ const handleLogoRemove = () => {
           </Grid>
         </SectionCard>
 
+        {isEditMode && organizationJobs.length > 0 && (
+          <SectionCard title="Select Existing Job" icon="📝">
+            <Field>
+              <Label>Select Job</Label>
+
+              <Select
+                value={selectedJobId}
+                onChange={async (jobId) => {
+                  setSelectedJobId(jobId);
+
+                  await loadJob(jobId);
+                }}
+                placeholder="Select Job"
+                options={organizationJobs.map((job) => ({
+                  value: job.id,
+                  label: job.role,
+                }))}
+              />
+            </Field>
+          </SectionCard>
+        )}
+
         {/* ── 2. Basic Info ── */}
         <SectionCard title="Job Details" icon="📋">
           <Grid cols={2}>
-           <Field>
-  <Label required>Job Role / Title</Label>
-  <ReusableSelect
-    placeholder="Select or add Role"
-    fetchFunction={GetRole}
-    addFunction={PostRole}
-    single={true}
-    value={form.role}
-    onChange={val => set("role")(val)}
-  />
-</Field>
+            <Field>
+              <Label required>Job Role / Title</Label>
+              <ReusableSelect
+                placeholder="Select or add Role"
+                fetchFunction={GetRole}
+                addFunction={PostRole}
+                single={true}
+                value={form.role}
+                onChange={(val) => set("role")(val)}
+              />
+            </Field>
             <Field>
               <Label>Company Name</Label>
-              <Input value={form.companyName} onChange={set("companyName")} placeholder="Enter Company Name" />
+              <Input
+                value={form.companyName}
+                onChange={set("companyName")}
+                placeholder="Enter Company Name"
+              />
             </Field>
           </Grid>
 
           <div style={{ marginTop: 16 }}>
             <Label required>Description</Label>
-            <Textarea value={form.description} onChange={set("description")} placeholder="Describe the role, team, and what the candidate will be doing…" rows={5} />
+            <Textarea
+              value={form.description}
+              onChange={set("description")}
+              placeholder="Describe the role, team, and what the candidate will be doing…"
+              rows={5}
+            />
           </div>
 
           <div style={{ marginTop: 16 }}>
             <Label>Responsibilities</Label>
-            <Textarea value={form.responsibilities} onChange={set("responsibilities")} placeholder="Key responsibilities and day-to-day tasks…" rows={4} />
+            <Textarea
+              value={form.responsibilities}
+              onChange={set("responsibilities")}
+              placeholder="Key responsibilities and day-to-day tasks…"
+              rows={4}
+            />
           </div>
         </SectionCard>
 
@@ -603,333 +1122,489 @@ const handleLogoRemove = () => {
           <Grid cols={3}>
             <Field>
               <Label required>Employment Type</Label>
-             <Select
-  value={form.employmentType}
-  onChange={v => {
-    const needsTenure = ["PartTime", "Contract", "Freelancer"].includes(v);
-    setForm(f => ({
-      ...f,
-      employmentType: v,
-      tenure: needsTenure ? f.tenure : { number: "", type: "month" }, // ← reset if not needed
-    }));
-  }}
-  placeholder="Select…"
-  options={EMPLOYMENT_TYPES}
-/>
+              <Select
+                value={form.employmentType}
+                onChange={(v) => {
+                  const needsTenure = [
+                    "PartTime",
+                    "Contract",
+                    "Freelancer",
+                  ].includes(v);
+                  setForm((f) => ({
+                    ...f,
+                    employmentType: v,
+                    tenure: needsTenure
+                      ? f.tenure
+                      : { number: "", type: "month" }, // ← reset if not needed
+                  }));
+                }}
+                placeholder="Select…"
+                options={EMPLOYMENT_TYPES}
+              />
             </Field>
-           <Field>
-  <Label required>Job Type</Label>
- <Select
-  value={form.jobType}
-  onChange={v => setForm(f => ({
-    ...f,
-    jobType: v,
-    location: v === "Remote" ? ["Remote"] : [],  // ← set "Remote" instead of clearing
-  }))}
-  placeholder="Select…"
-  options={JOB_TYPES}
-/>
-</Field>
+            <Field>
+              <Label required>Job Type</Label>
+              <Select
+                value={form.jobType}
+                onChange={(v) =>
+                  setForm((f) => ({
+                    ...f,
+                    jobType: v,
+                    location: v === "Remote" ? ["Remote"] : [], // ← set "Remote" instead of clearing
+                  }))
+                }
+                placeholder="Select…"
+                options={JOB_TYPES}
+              />
+            </Field>
             <Field>
               <Label>Experience Level</Label>
-              <Select value={form.experienceLevel} onChange={set("experienceLevel")} placeholder="Select…" options={EXPERIENCE_LEVELS} />
+              <Select
+                value={form.experienceLevel}
+                onChange={set("experienceLevel")}
+                placeholder="Select…"
+                options={EXPERIENCE_LEVELS}
+              />
             </Field>
           </Grid>
 
           {/* Tenure — shown only when needed */}
           {NEEDS_TENURE.includes(form.employmentType) && (
-            <div style={{ marginTop: 16, padding: "14px 16px", background: "#FEF9C3", border: "1px solid #FDE68A", borderRadius: 8 }}>
-              <Label required>Tenure (required for {form.employmentType})</Label>
+            <div
+              style={{
+                marginTop: 16,
+                padding: "14px 16px",
+                background: "#FEF9C3",
+                border: "1px solid #FDE68A",
+                borderRadius: 8,
+              }}
+            >
+              <Label required>
+                Tenure (required for {form.employmentType})
+              </Label>
               <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                 <Input
                   type="number"
                   value={form.tenure.number}
-                  onChange={v => setForm(f => ({ ...f, tenure: { ...f.tenure, number: v } }))}
+                  onChange={(v) =>
+                    setForm((f) => ({
+                      ...f,
+                      tenure: { ...f.tenure, number: v },
+                    }))
+                  }
                   placeholder="e.g. 6"
                 />
-             <div style={{ width: 140 }}>
-  <select
-    value={form.tenure.type || "month"}
-    onChange={e => setForm(f => ({ ...f, tenure: { ...f.tenure, type: e.target.value } }))}
-    style={{ width: "100%", padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
-  >
-    <option value="month">Month</option>
-    <option value="year">Year</option>
-  </select>
-</div>
+                <div style={{ width: 140 }}>
+                  <select
+                    value={form.tenure.type || "month"}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        tenure: { ...f.tenure, type: e.target.value },
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      color: "#111827",
+                      background: "#fff",
+                      outline: "none",
+                    }}
+                  >
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                  </select>
+                </div>
               </div>
             </div>
           )}
 
           <div style={{ marginTop: 16 }}>
             <Grid cols={2}>
-            {/* Add this state at the top with your other states */}
-{/* const [isExperienceRange, setIsExperienceRange] = useState(false); */}
+              {/* Add this state at the top with your other states */}
+              {/* const [isExperienceRange, setIsExperienceRange] = useState(false); */}
 
-<Field>
-  <div style={{ marginBottom: 6 }}>
-    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", letterSpacing: "0.01em", marginBottom: 4 }}>
-      Experience
-    </div>
-    <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6B7280", cursor: "pointer", fontWeight: 400 }}>
-      <input
-        type="checkbox"
-        checked={isExperienceRange}
-       onChange={e => {
-  setIsExperienceRange(e.target.checked);
-  setForm(f => ({ ...f, experience: { number: "", min: "", max: "", type: "year" } }));
-}}
-        style={{ cursor: "pointer", accentColor: "#111827" }}
-      />
-      Use Experience Range
-    </label>
-  </div>
-  {!isExperienceRange ? (
-  <div style={{ display: "flex", gap: 8 }}>
-    <Input
-      type="number"
-      value={form.experience.number || ""}  
-      onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, number: v } }))}
-      placeholder="e.g. 3 or 5.5"
-    />
-    <select
-      value={form.experience.type || "year"}
-      onChange={e => setForm(f => ({ ...f, experience: { ...f.experience, type: e.target.value } }))}
-      style={{ padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
-    >
-      <option value="year">Years</option>
-      <option value="month">Months</option>
-    </select>
-  </div>
-) : (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      <Input
-        type="number"
-        value={form.experience.min}
-        onChange={v => setForm(f => ({ ...f, experience: { ...f.experience, min: v } }))}
-        placeholder="Min"
-      />
-      <span style={{ color: "#9CA3AF", fontSize: 13 }}>–</span>
-      <Input
-        type="number"
-        value={form.experience.max}
-        onChange={v => {
-          if (Number(v) < Number(form.experience.min)) return;
-          setForm(f => ({ ...f, experience: { ...f.experience, max: v } }));
-        }}
-        placeholder="Max"
-      />
-      <select
-        value={form.experience.type || "year"}
-        onChange={e => setForm(f => ({ ...f, experience: { ...f.experience, type: e.target.value } }))}
-        style={{ padding: "9px 12px", border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, color: "#111827", background: "#fff", outline: "none" }}
-      >
-        <option value="year">Years</option>
-        <option value="month">Months</option>
-      </select>
-    </div>
-  )}
+              <Field>
+                <div style={{ marginBottom: 6 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#374151",
+                      letterSpacing: "0.01em",
+                      marginBottom: 4,
+                    }}
+                  >
+                    Experience
+                  </div>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontSize: 12,
+                      color: "#6B7280",
+                      cursor: "pointer",
+                      fontWeight: 400,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isExperienceRange}
+                      onChange={(e) => {
+                        setIsExperienceRange(e.target.checked);
+                        setForm((f) => ({
+                          ...f,
+                          experience: {
+                            number: "",
+                            min: "",
+                            max: "",
+                            type: "year",
+                          },
+                        }));
+                      }}
+                      style={{ cursor: "pointer", accentColor: "#111827" }}
+                    />
+                    Use Experience Range
+                  </label>
+                </div>
+                {!isExperienceRange ? (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Input
+                      type="number"
+                      value={form.experience.number || ""}
+                      onChange={(v) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, number: v },
+                        }))
+                      }
+                      placeholder="e.g. 3 or 5.5"
+                    />
+                    <select
+                      value={form.experience.type || "year"}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, type: e.target.value },
+                        }))
+                      }
+                      style={{
+                        padding: "9px 12px",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 8,
+                        fontSize: 13,
+                        color: "#111827",
+                        background: "#fff",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="year">Years</option>
+                      <option value="month">Months</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <Input
+                      type="number"
+                      value={form.experience.min}
+                      onChange={(v) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, min: v },
+                        }))
+                      }
+                      placeholder="Min"
+                    />
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>–</span>
+                    <Input
+                      type="number"
+                      value={form.experience.max}
+                      onChange={(v) => {
+                        if (Number(v) < Number(form.experience.min)) return;
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, max: v },
+                        }));
+                      }}
+                      placeholder="Max"
+                    />
+                    <select
+                      value={form.experience.type || "year"}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, type: e.target.value },
+                        }))
+                      }
+                      style={{
+                        padding: "9px 12px",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 8,
+                        fontSize: 13,
+                        color: "#111827",
+                        background: "#fff",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="year">Years</option>
+                      <option value="month">Months</option>
+                    </select>
+                  </div>
+                )}
 
-  {isExperienceRange && form.experience.max && form.experience.min &&
-    Number(form.experience.max) < Number(form.experience.min) && (
-    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
-      Max must be greater than Min
-    </div>
-  )}
-</Field>
-   <Field>
-  <div style={{ marginBottom: 6 }}>
-    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 4 }}>
-      Salary
-    </div>
+                {isExperienceRange &&
+                  form.experience.max &&
+                  form.experience.min &&
+                  Number(form.experience.max) < Number(form.experience.min) && (
+                    <div
+                      style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}
+                    >
+                      Max must be greater than Min
+                    </div>
+                  )}
+              </Field>
+              <Field>
+                <div style={{ marginBottom: 6 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#374151",
+                      marginBottom: 4,
+                    }}
+                  >
+                    Salary
+                  </div>
 
-    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#6B7280", cursor: "pointer" }}>
-      <input
-        type="checkbox"
-        checked={isSalaryRange}
-        onChange={e => {
-          setIsSalaryRange(e.target.checked);
-          set("salary")(""); // reset salary
-        }}
-      />
-      Use Salary Range
-    </label>
-  </div>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontSize: 12,
+                      color: "#6B7280",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSalaryRange}
+                      onChange={(e) => {
+                        setIsSalaryRange(e.target.checked);
+                        set("salary")(""); // reset salary
+                      }}
+                    />
+                    Use Salary Range
+                  </label>
+                </div>
 
-  {!isSalaryRange ? (
-    // 🔹 Single salary input
-    <Input
-      value={form.salary}
-      onChange={v => set("salary")(v.slice(0, 10))}
-      placeholder="e.g. 10 LPA or ₹80K/mo"
-    />
-  ) : (
-    // 🔹 Range input
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      <Input
-        value={form.salaryMin || ""}
-        onChange={v =>
-          setForm(f => ({ ...f, salaryMin: v }))
-        }
-        placeholder="Min 2 LPA"
-      />
-      <span style={{ color: "#9CA3AF" }}>–</span>
-      <Input
-        value={form.salaryMax || ""}
-        onChange={v =>
-          setForm(f => ({ ...f, salaryMax: v }))
-        }
-        placeholder="Max 4 LPA"
-      />
-    </div>
-  )}
+                {!isSalaryRange ? (
+                  // 🔹 Single salary input
+                  <Input
+                    value={form.salary}
+                    onChange={(v) => set("salary")(v.slice(0, 10))}
+                    placeholder="e.g. 10 LPA or ₹80K/mo"
+                  />
+                ) : (
+                  // 🔹 Range input
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <Input
+                      value={form.salaryMin || ""}
+                      onChange={(v) => setForm((f) => ({ ...f, salaryMin: v }))}
+                      placeholder="Min 2 LPA"
+                    />
+                    <span style={{ color: "#9CA3AF" }}>–</span>
+                    <Input
+                      value={form.salaryMax || ""}
+                      onChange={(v) => setForm((f) => ({ ...f, salaryMax: v }))}
+                      placeholder="Max 4 LPA"
+                    />
+                  </div>
+                )}
 
-  {/* Validation */}
-  {isSalaryRange && form.salaryMin && form.salaryMax &&
-    Number(form.salaryMax) < Number(form.salaryMin) && (
-      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 6 }}>
-        Max salary must be greater than Min
-      </div>
-  )}
-</Field>
+                {/* Validation */}
+                {isSalaryRange &&
+                  form.salaryMin &&
+                  form.salaryMax &&
+                  Number(form.salaryMax) < Number(form.salaryMin) && (
+                    <div
+                      style={{ color: "#EF4444", fontSize: 12, marginTop: 6 }}
+                    >
+                      Max salary must be greater than Min
+                    </div>
+                  )}
+              </Field>
             </Grid>
           </div>
 
           <div style={{ marginTop: 16 }}>
-         <Grid cols={2}>
-  {/* Hide location when Remote is selected */}
- {form.jobType !== "Remote" && (
-  <Field>
-    <Label>Location</Label>
-    <ReusableSelect
-      single={false}
-      placeholder="Select up to 3 Locations"
-      fetchFunction={GetLocations}
-      addFunction={PostLocations}
-      value={
-        typeof form.location === "string" && form.location
-          ? form.location.split(",").map(l => l.trim())
-          : form.location || []
-      }
-      onChange={val => {
-        if (val.length > 3) return;
-        set("location")(val);
-      }}
-    />
-    {Array.isArray(form.location) && form.location.length > 3 && (
-      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
-        Maximum 3 locations allowed
-      </div>
-    )}
-  </Field>
-)}
-  <Field>
-    <Label>Applicant Source</Label>
-    <Select value={form.applicantSource} onChange={set("applicantSource")} options={APPLICANT_SOURCES} />
-  </Field>
-</Grid>
+            <Grid cols={2}>
+              {/* Hide location when Remote is selected */}
+              {form.jobType !== "Remote" && (
+                <Field>
+                  <Label>Location</Label>
+                  <ReusableSelect
+                    single={false}
+                    placeholder="Select up to 3 Locations"
+                    fetchFunction={GetLocations}
+                    addFunction={PostLocations}
+                    value={
+                      typeof form.location === "string" && form.location
+                        ? form.location.split(",").map((l) => l.trim())
+                        : form.location || []
+                    }
+                    onChange={(val) => {
+                      if (val.length > 3) return;
+                      set("location")(val);
+                    }}
+                  />
+                  {Array.isArray(form.location) && form.location.length > 3 && (
+                    <div
+                      style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}
+                    >
+                      Maximum 3 locations allowed
+                    </div>
+                  )}
+                </Field>
+              )}
+              <Field>
+                <Label>Applicant Source</Label>
+                <Select
+                  value={form.applicantSource}
+                  onChange={set("applicantSource")}
+                  options={APPLICANT_SOURCES}
+                />
+              </Field>
+            </Grid>
           </div>
         </SectionCard>
 
         {/* ── 4. Skills & Clouds ── */}
-<SectionCard title="Skills & Expertise" icon="✦">
-  <div style={{ marginBottom: 16 }}>
-    <Label required>Skills</Label>
-    <ReusableSelect
-      single={false}
-      placeholder="Select up to 50 Skills"
-      fetchFunction={GetSkills}
-      addFunction={PostSkills}
-      value={form.skills}
-      onChange={val => {
-        if (val.length > 50) return;
-        set("skills")(val);
-      }}
-    />
-    {form.skills.length > 50 && (
-      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
-        Maximum 50 skills allowed
-      </div>
-    )}
-  </div>
+        <SectionCard title="Skills & Expertise" icon="✦">
+          <div style={{ marginBottom: 16 }}>
+            <Label required>Skills</Label>
+            <ReusableSelect
+              single={false}
+              placeholder="Select up to 50 Skills"
+              fetchFunction={GetSkills}
+              addFunction={PostSkills}
+              value={form.skills}
+              onChange={(val) => {
+                if (val.length > 50) return;
+                set("skills")(val);
+              }}
+            />
+            {form.skills.length > 50 && (
+              <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+                Maximum 50 skills allowed
+              </div>
+            )}
+          </div>
 
-  <div style={{ marginBottom: 16 }}>
-    <Label required>Clouds</Label>
-    <ReusableSelect
-      single={false}
-      placeholder="Select up to 12 Clouds"
-      fetchFunction={GetClouds}
-      addFunction={PostClouds}
-      value={form.clouds}
-      onChange={val => {
-        if (val.length > 12) return;
-        set("clouds")(val);
-      }}
-    />
-    {form.clouds.length > 12 && (
-      <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
-        Maximum 12 clouds allowed
-      </div>
-    )}
-  </div>
+          <div style={{ marginBottom: 16 }}>
+            <Label required>Clouds</Label>
+            <ReusableSelect
+              single={false}
+              placeholder="Select up to 12 Clouds"
+              fetchFunction={GetClouds}
+              addFunction={PostClouds}
+              value={form.clouds}
+              onChange={(val) => {
+                if (val.length > 12) return;
+                set("clouds")(val);
+              }}
+            />
+            {form.clouds.length > 12 && (
+              <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+                Maximum 12 clouds allowed
+              </div>
+            )}
+          </div>
 
-  <div>
-    <Label>Certifications</Label>
-    <ReusableSelect
-      single={false}
-      placeholder="Select or add Certification"
-      fetchFunction={GetCertifications}
-      addFunction={PostCertifications}
-      value={form.certifications}
-      onChange={val => set("certifications")(val)}
-    />
-  </div>
-</SectionCard>
+          <div>
+            <Label>Certifications</Label>
+            <ReusableSelect
+              single={false}
+              placeholder="Select or add Certification"
+              fetchFunction={GetCertifications}
+              addFunction={PostCertifications}
+              value={form.certifications}
+              onChange={(val) => set("certifications")(val)}
+            />
+          </div>
+        </SectionCard>
 
         {/* ── 5. Additional ── */}
         <SectionCard title="Additional Settings" icon="🔧">
           <Grid cols={3}>
             <Field>
               <Label>Application Deadline</Label>
-              <Input type="date" value={form.applicationDeadline} onChange={set("applicationDeadline")} />
+              <Input
+                type="date"
+                value={form.applicationDeadline}
+                onChange={set("applicationDeadline")}
+              />
             </Field>
-           <Field>
-  <Label>Application Limit</Label>
-  <Input
-    type="number"
-    value={form.ApplicationLimit}
-    onChange={v => {
-      if (v === "" || (Number(v) >= 1 && Number(v) <= 500)) {
-        set("ApplicationLimit")(v);
-      }
-    }}
-    placeholder="e.g. 100 (max 500)"
-  />
-  {form.ApplicationLimit && Number(form.ApplicationLimit) > 500 && (
-    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
-      Maximum limit is 500
-    </div>
-  )}
-</Field>
-           <Field>
-  <Label>Company Logo</Label>
-  {logoPreview ? (
-    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      <img
-        src={logoPreview}
-        alt="Company Logo"
-        style={{ width: 60, height: 60, borderRadius: 8, border: "1px solid #E5E7EB", objectFit: "cover" }}
-      />
-      <button
-        onClick={handleLogoRemove}
-        style={{ fontSize: 12, fontWeight: 500, padding: "5px 12px", border: "1px solid #FCA5A5", borderRadius: 6, background: "#FEF2F2", color: "#991B1B", cursor: "pointer" }}
-      >
-        Remove
-      </button>
-    </div>
-  ) : (
-    <>
-      <label
+            <Field>
+              <Label>Application Limit</Label>
+              <Input
+                type="number"
+                value={form.ApplicationLimit}
+                onChange={(v) => {
+                  if (v === "" || (Number(v) >= 1 && Number(v) <= 500)) {
+                    set("ApplicationLimit")(v);
+                  }
+                }}
+                placeholder="e.g. 100 (max 500)"
+              />
+              {form.ApplicationLimit && Number(form.ApplicationLimit) > 500 && (
+                <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+                  Maximum limit is 500
+                </div>
+              )}
+            </Field>
+            <Field>
+              <Label>Company Logo</Label>
+              {logoPreview ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <img
+                    src={logoPreview}
+                    alt="Company Logo"
+                    style={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 8,
+                      border: "1px solid #E5E7EB",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <button
+                    onClick={handleLogoRemove}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 500,
+                      padding: "5px 12px",
+                      border: "1px solid #FCA5A5",
+                      borderRadius: 6,
+                      background: "#FEF2F2",
+                      color: "#991B1B",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* <label
         style={{
           display: "inline-flex", alignItems: "center", gap: 6,
           padding: "7px 14px", fontSize: 13, fontWeight: 500,
@@ -944,45 +1619,130 @@ const handleLogoRemove = () => {
           onChange={handleLogoUpload}
           style={{ display: "none" }}
         />
-      </label>
-      <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>JPG or PNG, max 2MB</div>
-    </>
-  )}
-  {logoError && (
-    <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>{logoError}</div>
-  )}
-</Field>
+      </label> */}
+                  <label
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "7px 14px",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 8,
+                      background: "#F9FAFB",
+                      color: "#374151",
+                      cursor: logoUploading ? "not-allowed" : "pointer",
+                      opacity: logoUploading ? 0.6 : 1,
+                    }}
+                  >
+                    {logoUploading ? "Uploading…" : "↑ Upload Logo"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={handleLogoUpload}
+                      disabled={logoUploading}
+                      style={{ display: "none" }}
+                    />
+                  </label>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>
+                    JPG or PNG, max 2MB
+                  </div>
+                </>
+              )}
+              {logoError && (
+                <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>
+                  {logoError}
+                </div>
+              )}
+            </Field>
           </Grid>
         </SectionCard>
 
         {/* ── 6. Screening Questions ── */}
-{contextHolder}
-<SectionCard title="Screening Questions" icon="❓">
-  <ScreeningQuestionsStep
-    screeningQuestions={screeningQuestions}
-    setScreeningQuestions={setScreeningQuestions}
-    messageApi={messageApi}
-  />
-</SectionCard>
+        {contextHolder}
+        <SectionCard title="Screening Questions" icon="❓">
+          <ScreeningQuestionsStep
+            screeningQuestions={screeningQuestions}
+            setScreeningQuestions={setScreeningQuestions}
+            messageApi={messageApi}
+          />
+        </SectionCard>
 
         {/* ── Bottom submit bar ── */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, paddingTop: 4, paddingBottom: 32 }}>
-          <button onClick={handleReset} style={{ fontSize: 13, fontWeight: 500, padding: "9px 20px", border: "1px solid #E5E7EB", borderRadius: 8, background: "#fff", color: "#374151", cursor: "pointer" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            paddingTop: 4,
+            paddingBottom: 32,
+          }}
+        >
+          <button
+            onClick={handleReset}
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              padding: "9px 20px",
+              border: "1px solid #E5E7EB",
+              borderRadius: 8,
+              background: "#fff",
+              color: "#374151",
+              cursor: "pointer",
+            }}
+          >
             Reset form
           </button>
           <button
             onClick={handleSubmit}
             disabled={saving}
-            style={{ fontSize: 13, fontWeight: 600, padding: "9px 28px", border: "none", borderRadius: 8, background: saving ? "#9CA3AF" : "#111827", color: "#fff", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              padding: "9px 28px",
+              border: "none",
+              borderRadius: 8,
+              background: saving ? "#9CA3AF" : "#111827",
+              color: "#fff",
+              cursor: saving ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
           >
-            {saving && <span style={{ width: 12, height: 12, border: "2px solid #ffffff60", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />}
-            {saving ? "Posting…" : "Post Job"}
+            {saving && (
+              <span
+                style={{
+                  width: 12,
+                  height: 12,
+                  border: "2px solid #ffffff60",
+                  borderTopColor: "#fff",
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  animation: "spin 0.7s linear infinite",
+                }}
+              />
+            )}
+            {/* {saving ? "Posting…" : "Post Job"} */}
+            {saving
+              ? editingJobId
+                ? "Updating..."
+                : "Posting..."
+              : editingJobId
+                ? "Update Job"
+                : "Post Job"}
           </button>
         </div>
-
       </div>
 
-      {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onDone={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
