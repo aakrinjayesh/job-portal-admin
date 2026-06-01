@@ -558,6 +558,7 @@ export default function AdminPostjob() {
     setForm((f) => ({
       ...f,
       organizationId: orgId,
+      companyName: org?.name || "",
     }));
 
     // ONLY FOR EDIT MODE
