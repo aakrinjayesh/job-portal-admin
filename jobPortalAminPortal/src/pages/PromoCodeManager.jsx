@@ -506,17 +506,22 @@ const handleEdit = async (values) => {
 </Form.Item>
 
           {/* Max Usages */}
-          <Form.Item
-            label="Max Total Usages"
-            name="maxTotalUsages"
-            help="Leave empty for unlimited"
-          >
-            <InputNumber
-              min={1}
-              style={{ width: "100%" }}
-              placeholder="e.g. 100"
-            />
-          </Form.Item>
+     <Form.Item
+  label="Max Total Usages"
+  name="maxTotalUsages"
+  rules={[
+    {
+      type: "number",
+      max: 10000,
+      message: "Maximum total usages allowed is 10,000",
+    },
+  ]}
+>
+  <InputNumber
+    min={1}
+    style={{ width: "100%" }}
+  />
+</Form.Item>
 
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <Button
@@ -591,9 +596,22 @@ const handleEdit = async (values) => {
         disabledDate={(current) => current && current < dayjs().startOf("day")} />
     </Form.Item>
 
-    <Form.Item label="Max Total Usages" name="maxTotalUsages" help="Leave empty for unlimited">
-      <InputNumber min={1} style={{ width: "100%" }} placeholder="e.g. 100" />
-    </Form.Item>
+   <Form.Item
+  label="Max Total Usages"
+  name="maxTotalUsages"
+  rules={[
+    {
+      type: "number",
+      max: 10000,
+      message: "Maximum total usages allowed is 10,000",
+    },
+  ]}
+>
+  <InputNumber
+    min={1}
+    style={{ width: "100%" }}
+  />
+</Form.Item>
 
     <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
       <Button onClick={() => { setEditModalOpen(false); editForm.resetFields(); }}>Cancel</Button>
