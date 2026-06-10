@@ -6,6 +6,7 @@ import {
 } from "antd";
 import {
   PlayCircleOutlined,
+  CheckOutlined,
   ClearOutlined,
   CopyOutlined,
   DatabaseOutlined,
@@ -17,6 +18,7 @@ import { executeQueryApi } from "../api/api";
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { useBreakpoint } = Grid;
+
 
 // ─── Schema Explorer Data ─────────────────────────────────────────────────────
 const SCHEMA_EXPLORER = {
@@ -117,6 +119,7 @@ export default function QueryManager() {
 
   const screens  = useBreakpoint();
   const isMobile = !screens.sm;
+  const [copied, setCopied] = useState(false);
 
   // ── Schema Explorer ──────────────────────────────────────────────────────────
   const handleTableSelect = (table) => {
@@ -177,7 +180,16 @@ export default function QueryManager() {
     if (tpl) { setQuery(tpl.query); handleClearExplorer(); }
   };
 
-  const handleCopy  = () => navigator.clipboard.writeText(query);
+  const handleCopy = async () => {
+  if (!query) return;
+
+  await navigator.clipboard.writeText(query);
+  setCopied(true);
+
+  setTimeout(() => {
+    setCopied(false);
+  }, 2000);
+};
   const handleClear = () => {
     setQuery(""); setResult(null); setColumns([]);
     setError(""); setExecutionTime(null); handleClearExplorer();
@@ -229,12 +241,18 @@ export default function QueryManager() {
         <div style={{ marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <Text strong style={{ fontSize: isMobile ? 12 : 14 }}>SQL Query</Text>
           <Space size={isMobile ? 4 : 8}>
-          <Tooltip title="Copy query">
+        <Tooltip title={copied ? "Copied!" : "Copy query"}>
   <Button
     size="small"
-    icon={<CopyOutlined />}
-    onClick={handleCopy}
     disabled={!query}
+    icon={
+      copied ? (
+        <CheckOutlined style={{ color: "#52c41a" }} />
+      ) : (
+        <CopyOutlined />
+      )
+    }
+    onClick={handleCopy}
   />
 </Tooltip>
             <Tooltip title="Clear">
