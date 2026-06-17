@@ -19,6 +19,11 @@ import {
   PostCertifications,
   GetLocations,
   PostLocations,
+  GetCountries,
+  GetLocationsByCountry,
+  GetVisaTypesByCountry,
+  PostCountry,
+  PostVisaType,
 } from "../api/api";
 import { message } from "antd";
 import ReusableSelect from "./ReusableSelect"; // adjust path
@@ -29,6 +34,18 @@ import ReusableSelect from "./ReusableSelect"; // adjust path
 // export const adminPostJobApi = (data) =>
 //   axios.post("/admin/jobs", data);
 // ─────────────────────────────────────────────────────────
+
+const CURRENCY_MAP = {
+  USA: "USD",
+  UK: "GBP",
+  Canada: "CAD",
+  Australia: "AUD",
+  UAE: "AED",
+  Europe: "EUR",
+  Singapore: "SGD",
+  Vietnam: "VND",
+  India: "INR",
+};
 
 const EMPLOYMENT_TYPES = [
   "FullTime",
@@ -445,6 +462,8 @@ const EMPTY_FORM = {
   skills: [],
   clouds: [],
   salary: "",
+  currency: "", // ← ADD
+  countryName: "",
   companyName: "",
   responsibilities: "",
   certifications: [],
@@ -489,6 +508,12 @@ export default function AdminPostjob() {
   // ── SCREENING QUESTIONS STATE ──────────────────────────
   const [screeningQuestions, setScreeningQuestions] = useState([]);
 
+  const [countries, setCountries] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [visaTypeOptions, setVisaTypeOptions] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [selectedCountryId, setSelectedCountryId] = useState(null);
+
   useEffect(() => {
     if (form.jobType === "Remote") {
       set("location")(["Remote"]);
@@ -511,6 +536,9 @@ export default function AdminPostjob() {
         setToast({ message: "Failed to load organizations", type: "error" });
       })
       .finally(() => setLoadingOrgs(false));
+  }, []);
+  useEffect(() => {
+    GetCountries().then((res) => setCountries(res.data || []));
   }, []);
 
   const validateScreeningQuestions = () => {
@@ -575,32 +603,92 @@ export default function AdminPostjob() {
       }
     }
   };
+
+  const handleCountryChange = (countryName) => {
+    const country = countries.find((c) => c.name === countryName);
+    const countryId = country?.id;
+    setSelectedCountryId(countryId);
+    setForm((f) => ({
+      ...f,
+      countryId,
+      countryName,
+      location: [],
+      visaType: "",
+      currency: CURRENCY_MAP[countryName] || "",
+    }));
+  };
+
   const loadJob = async (jobId) => {
     try {
       const res = await getAdminJobByIdApi(jobId);
-
       const job = res.job;
 
       setEditingJobId(job.id);
 
+      // ── Parse salary back into currency + amount ──
+      let parsedSalary = job.salary || "";
+      let parsedCurrency = "";
+      const currencyCodes = Object.values(CURRENCY_MAP);
+      for (const code of currencyCodes) {
+        if (parsedSalary.startsWith(code + " ")) {
+          parsedCurrency = code;
+          parsedSalary = parsedSalary
+            .replace(new RegExp(`^${code} `), "")
+            .replace(new RegExp(` - ${code} `, "g"), " - ");
+          break;
+        }
+      }
+
+      // ── Detect salary range ──
+      const isRange = parsedSalary.includes(" - ");
+      let salaryMin = "";
+      let salaryMax = "";
+      let salary = "";
+      if (isRange) {
+        [salaryMin, salaryMax] = parsedSalary.split(" - ");
+        setIsSalaryRange(true);
+      } else {
+        salary = parsedSalary;
+        setIsSalaryRange(false);
+      }
+
+      // ── Detect experience range ──
+      if (
+        job.experience?.min !== undefined ||
+        job.experience?.max !== undefined
+      ) {
+        setIsExperienceRange(true);
+      } else {
+        setIsExperienceRange(false);
+      }
+
+      // ── Restore country (for selectedCountryId) ──
+      if (job.country) {
+        const country = countries.find((c) => c.name === job.country);
+        if (country) {
+          setSelectedCountryId(country.id);
+        }
+      }
+
       setForm({
         ...EMPTY_FORM,
-
         ...job,
-
+        countryName: job.country || "", // ← for ReusableSelect display
+        currency: parsedCurrency, // ← restored currency code
+        salary, // ← single salary without currency
+        salaryMin, // ← range min without currency
+        salaryMax, // ← range max without currency
         experience: job.experience || {
+          number: "",
           min: "",
           max: "",
           type: "year",
         },
-
-        tenure: job.tenure || {
-          number: "",
-          type: "month",
-        },
+        tenure: job.tenure || { number: "", type: "month" },
+        location: job.location ? [job.location] : [],
       });
+
       setLogoPreview(job.companyLogo || "");
-      // ADD THIS
       setScreeningQuestions(job.questions || []);
     } catch (error) {
       console.error(error);
@@ -664,6 +752,16 @@ export default function AdminPostjob() {
       options: q.type === "SELECT" ? q.options : [],
       order: index,
     }));
+  const formatSalary = () => {
+    const curr = form.currency ? `${form.currency} ` : "";
+    if (isSalaryRange) {
+      if (form.salaryMin && form.salaryMax) {
+        return `${curr}${form.salaryMin} - ${curr}${form.salaryMax}`;
+      }
+      return undefined;
+    }
+    return form.salary ? `${curr}${form.salary}` : undefined;
+  };
 
   const handleSubmit = async () => {
     const err = validate();
@@ -699,15 +797,26 @@ export default function AdminPostjob() {
         tenure: NEEDS_TENURE.includes(form.employmentType)
           ? { number: form.tenure.number, type: form.tenure.type }
           : undefined,
-        location: Array.isArray(form.location)
-          ? form.location.join(", ")
-          : form.location || undefined,
+        // location: Array.isArray(form.location)
+        //   ? form.location.join(", ")
+        //   : form.location || undefined,
+        location:
+          form.jobType === "Remote"
+            ? "Remote"
+            : locationOptions.find((l) => l.id === form.location[0])?.name ||
+              form.location[0] ||
+              undefined,
+        // countryId: form.countryId || undefined,
+        country: form.countryName || undefined,
+        visaType: form.visaType || undefined,
+
         skills: form.skills,
         clouds: form.clouds,
         questions: questionsPayload,
-        salary: isSalaryRange
-          ? `${form.salaryMin} - ${form.salaryMax}`
-          : form.salary,
+        // salary: isSalaryRange
+        //   ? `${form.salaryMin} - ${form.salaryMax}`
+        //   : form.salary,
+        salary: formatSalary(),
         companyName: form.companyName || undefined,
         responsibilities: form.responsibilities,
         certifications: form.certifications,
@@ -772,6 +881,9 @@ export default function AdminPostjob() {
     setSelectedJobId("");
 
     setOrganizationJobs([]);
+    setLocationOptions([]);
+    setVisaTypeOptions([]);
+    setSelectedCountryId(null);
   };
 
   // const handleLogoUpload = (e) => {
@@ -1224,9 +1336,8 @@ export default function AdminPostjob() {
           )}
 
           <div style={{ marginTop: 16 }}>
-            <Grid cols={2}>
-              {/* Add this state at the top with your other states */}
-              {/* const [isExperienceRange, setIsExperienceRange] = useState(false); */}
+            {/* <Grid cols={2}>
+             
 
               <Field>
                 <div style={{ marginBottom: 6 }}>
@@ -1370,68 +1481,330 @@ export default function AdminPostjob() {
                     </div>
                   )}
               </Field>
+              <div style={{ marginBottom: 6 }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    marginBottom: 4,
+                  }}
+                >
+                  Salary
+                </div>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 12,
+                    color: "#6B7280",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSalaryRange}
+                    onChange={(e) => {
+                      setIsSalaryRange(e.target.checked);
+                      set("salary")("");
+                    }}
+                  />
+                  Use Salary Range
+                </label>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <select
+                  value={form.currency}
+                  onChange={(e) => set("currency")(e.target.value)}
+                  style={{
+                    width: "30%",
+                    padding: "9px 12px",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 8,
+                    fontSize: 13,
+                    background: "#fff",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="">Currency</option>
+                  {Object.entries(CURRENCY_MAP).map(([country, code]) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+                {!isSalaryRange && (
+                  <Input
+                    value={form.salary}
+                    onChange={(v) => set("salary")(v.slice(0, 10))}
+                    placeholder="e.g. 80,000"
+                  />
+                )}
+              </div>
+              {isSalaryRange && (
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <Input
+                    value={form.salaryMin || ""}
+                    onChange={(v) => setForm((f) => ({ ...f, salaryMin: v }))}
+                    placeholder="Min"
+                  />
+                  <span style={{ color: "#9CA3AF" }}>–</span>
+                  <Input
+                    value={form.salaryMax || ""}
+                    onChange={(v) => setForm((f) => ({ ...f, salaryMax: v }))}
+                    placeholder="Max"
+                  />
+                </div>
+              )}
+              {isSalaryRange &&
+                form.salaryMin &&
+                form.salaryMax &&
+                Number(form.salaryMax) < Number(form.salaryMin) && (
+                  <div style={{ color: "#EF4444", fontSize: 12, marginTop: 6 }}>
+                    Max salary must be greater than Min
+                  </div>
+                )}
+            </Grid> */}
+            <Grid cols={2}>
               <Field>
+                {/* Experience - keep your existing experience code here unchanged */}
                 <div style={{ marginBottom: 6 }}>
                   <div
                     style={{
                       fontSize: 12,
                       fontWeight: 600,
                       color: "#374151",
+                      letterSpacing: "0.01em",
                       marginBottom: 4,
                     }}
                   >
-                    Salary
+                    Experience
                   </div>
-
                   <label
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 5,
                       fontSize: 12,
                       color: "#6B7280",
                       cursor: "pointer",
+                      fontWeight: 400,
                     }}
                   >
                     <input
                       type="checkbox"
-                      checked={isSalaryRange}
+                      checked={isExperienceRange}
                       onChange={(e) => {
-                        setIsSalaryRange(e.target.checked);
-                        set("salary")(""); // reset salary
+                        setIsExperienceRange(e.target.checked);
+                        setForm((f) => ({
+                          ...f,
+                          experience: {
+                            number: "",
+                            min: "",
+                            max: "",
+                            type: "year",
+                          },
+                        }));
                       }}
+                      style={{ cursor: "pointer", accentColor: "#111827" }}
                     />
-                    Use Salary Range
+                    Use Experience Range
                   </label>
                 </div>
-
-                {!isSalaryRange ? (
-                  // 🔹 Single salary input
-                  <Input
-                    value={form.salary}
-                    onChange={(v) => set("salary")(v.slice(0, 10))}
-                    placeholder="e.g. 10 LPA or ₹80K/mo"
-                  />
+                {!isExperienceRange ? (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Input
+                      type="number"
+                      value={form.experience.number || ""}
+                      onChange={(v) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, number: v },
+                        }))
+                      }
+                      placeholder="e.g. 3 or 5.5"
+                    />
+                    <select
+                      value={form.experience.type || "year"}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, type: e.target.value },
+                        }))
+                      }
+                      style={{
+                        padding: "9px 12px",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 8,
+                        fontSize: 13,
+                        color: "#111827",
+                        background: "#fff",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="year">Years</option>
+                      <option value="month">Months</option>
+                    </select>
+                  </div>
                 ) : (
-                  // 🔹 Range input
                   <div
                     style={{ display: "flex", gap: 8, alignItems: "center" }}
                   >
                     <Input
-                      value={form.salaryMin || ""}
-                      onChange={(v) => setForm((f) => ({ ...f, salaryMin: v }))}
-                      placeholder="Min 2 LPA"
+                      type="number"
+                      value={form.experience.min}
+                      onChange={(v) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, min: v },
+                        }))
+                      }
+                      placeholder="Min"
                     />
-                    <span style={{ color: "#9CA3AF" }}>–</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>–</span>
                     <Input
-                      value={form.salaryMax || ""}
-                      onChange={(v) => setForm((f) => ({ ...f, salaryMax: v }))}
-                      placeholder="Max 4 LPA"
+                      type="number"
+                      value={form.experience.max}
+                      onChange={(v) => {
+                        if (Number(v) < Number(form.experience.min)) return;
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, max: v },
+                        }));
+                      }}
+                      placeholder="Max"
                     />
+                    <select
+                      value={form.experience.type || "year"}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          experience: { ...f.experience, type: e.target.value },
+                        }))
+                      }
+                      style={{
+                        padding: "9px 12px",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 8,
+                        fontSize: 13,
+                        color: "#111827",
+                        background: "#fff",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="year">Years</option>
+                      <option value="month">Months</option>
+                    </select>
                   </div>
                 )}
+                {isExperienceRange &&
+                  form.experience.max &&
+                  form.experience.min &&
+                  Number(form.experience.max) < Number(form.experience.min) && (
+                    <div
+                      style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}
+                    >
+                      Max must be greater than Min
+                    </div>
+                  )}
+              </Field>
 
-                {/* Validation */}
+              {/* ── Salary Field ── */}
+              <Field>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    marginBottom: 4,
+                  }}
+                >
+                  Salary
+                </div>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 12,
+                    color: "#6B7280",
+                    cursor: "pointer",
+                    marginBottom: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSalaryRange}
+                    onChange={(e) => {
+                      setIsSalaryRange(e.target.checked);
+                      set("salary")("");
+                      setForm((f) => ({ ...f, salaryMin: "", salaryMax: "" }));
+                    }}
+                  />
+                  Use Salary Range
+                </label>
+
+                {/* Currency + amount in ONE row always */}
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <select
+                    value={form.currency}
+                    onChange={(e) => set("currency")(e.target.value)}
+                    style={{
+                      width: 90,
+                      flexShrink: 0,
+                      padding: "9px 8px",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      color: form.currency ? "#111827" : "#9CA3AF",
+                      background: "#fff",
+                      outline: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <option value="">CCY</option>
+                    {Object.entries(CURRENCY_MAP).map(([country, code]) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
+                  </select>
+
+                  {!isSalaryRange ? (
+                    <div style={{ flex: 1 }}>
+                      <Input
+                        value={form.salary}
+                        onChange={(v) => set("salary")(v.slice(0, 10))}
+                        placeholder="e.g. 80,000"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ flex: 1 }}>
+                        <Input
+                          value={form.salaryMin || ""}
+                          onChange={(v) =>
+                            setForm((f) => ({ ...f, salaryMin: v }))
+                          }
+                          placeholder="Min"
+                        />
+                      </div>
+                      <span style={{ color: "#9CA3AF", flexShrink: 0 }}>–</span>
+                      <div style={{ flex: 1 }}>
+                        <Input
+                          value={form.salaryMax || ""}
+                          onChange={(v) =>
+                            setForm((f) => ({ ...f, salaryMax: v }))
+                          }
+                          placeholder="Max"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
                 {isSalaryRange &&
                   form.salaryMin &&
                   form.salaryMax &&
@@ -1448,40 +1821,60 @@ export default function AdminPostjob() {
 
           <div style={{ marginTop: 16 }}>
             <Grid cols={2}>
-              {/* Hide location when Remote is selected */}
-              {form.jobType !== "Remote" && (
-                <Field>
-                  <Label>Location</Label>
-                  <ReusableSelect
-                    single={false}
-                    placeholder="Select up to 3 Locations"
-                    fetchFunction={GetLocations}
-                    addFunction={PostLocations}
-                    value={
-                      typeof form.location === "string" && form.location
-                        ? form.location.split(",").map((l) => l.trim())
-                        : form.location || []
-                    }
-                    onChange={(val) => {
-                      if (val.length > 3) return;
-                      set("location")(val);
-                    }}
-                  />
-                  {Array.isArray(form.location) && form.location.length > 3 && (
-                    <div
-                      style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}
-                    >
-                      Maximum 3 locations allowed
-                    </div>
-                  )}
-                </Field>
-              )}
+              <Field>
+                <Label>Country</Label>
+                <ReusableSelect
+                  single={true}
+                  placeholder="Select or add country…"
+                  fetchFunction={GetCountries}
+                  addFunction={PostCountry}
+                  valueKey="id"
+                  value={form.countryName}
+                  onChange={handleCountryChange}
+                />
+              </Field>
+
               <Field>
                 <Label>Applicant Source</Label>
                 <Select
                   value={form.applicantSource}
                   onChange={set("applicantSource")}
                   options={APPLICANT_SOURCES}
+                />
+              </Field>
+              {form.jobType !== "Remote" && (
+                <Field>
+                  <Label>Location</Label>
+                  <ReusableSelect
+                    key={`location-${selectedCountryId}`}
+                    single={false}
+                    placeholder="Select or add location…"
+                    fetchFunction={() =>
+                      GetLocationsByCountry(selectedCountryId)
+                    }
+                    addFunction={(data) =>
+                      PostLocations({ ...data, countryId: selectedCountryId })
+                    }
+                    valueKey="id"
+                    value={form.location}
+                    onChange={(v) => set("location")(v)}
+                  />
+                </Field>
+              )}
+
+              <Field>
+                <Label>Visa Type</Label>
+                <ReusableSelect
+                  key={`visa-${selectedCountryId}`}
+                  single={true}
+                  placeholder="Select or add visa type…"
+                  fetchFunction={() => GetVisaTypesByCountry(selectedCountryId)}
+                  addFunction={(data) =>
+                    PostVisaType({ ...data, countryId: selectedCountryId })
+                  }
+                  valueKey="id"
+                  value={form.visaType}
+                  onChange={(v) => set("visaType")(v)}
                 />
               </Field>
             </Grid>

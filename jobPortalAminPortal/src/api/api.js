@@ -347,7 +347,7 @@ export async function PostCertifications(payload) {
 export async function PostLocations(payload) {
   try {
     let data = JSON.stringify(payload);
-    const response = await axiosInstance.post("/locations", data, {
+    const response = await commonAxios.post("/locations", data, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -390,3 +390,59 @@ export const uploadLogoApi = async (file) => {
     throw error;
   }
 };
+
+export async function GetCountries() {
+  try {
+    const response = await commonAxios.get("/countries");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    throw error;
+  }
+}
+
+export async function PostCountry(payload) {
+  try {
+    const data = JSON.stringify(payload);
+    const response = await commonAxios.post("/countries", data, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error posting country:", error);
+    throw error;
+  }
+}
+
+export async function GetLocationsByCountry(countryId) {
+  try {
+    const response = await commonAxios.get(`/locations/country/${countryId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching locations by country:", error);
+    throw error;
+  }
+}
+
+export async function PostVisaType(payload) {
+  try {
+    const data = JSON.stringify(payload);
+    const response = await commonAxios.post("/visa-types", data, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error posting visa type:", error);
+    throw error;
+  }
+}
+
+export async function GetVisaTypesByCountry(countryId) {
+  try {
+    const response = await commonAxios.get(`/visa-types/country/${countryId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching visa types:", error);
+    throw error;
+  }
+}
