@@ -523,7 +523,7 @@ export default function AdminPostjob() {
   // Load organizations for the dropdown
   useEffect(() => {
     setLoadingOrgs(true);
-    getOrganizationsApi({ limit: 100 })
+    getOrganizationsApi({ limit: 1000 })
       .then((res) => {
         console.log("API response:", res.data); // 👈 check this first
         const orgs =
