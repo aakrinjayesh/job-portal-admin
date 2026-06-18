@@ -521,21 +521,61 @@ export default function AdminPostjob() {
   }, [form.jobType]);
 
   // Load organizations for the dropdown
+  // useEffect(() => {
+  //   setLoadingOrgs(true);
+  //   getOrganizationsApi({ limit: 1000 })
+  //     .then((res) => {
+  //       console.log("API response:", res.data); // 👈 check this first
+  //       const orgs =
+  //         res.data?.organizations || res.data?.data || res.data || [];
+  //       console.log("Orgs extracted:", orgs); // 👈 should be an array
+  //       setOrganizations(orgs);
+  //     })
+  //     .catch((err) => {
+  //       console.error("Org fetch error:", err);
+  //       setToast({ message: "Failed to load organizations", type: "error" });
+  //     })
+  //     .finally(() => setLoadingOrgs(false));
+  // }, []);
+
   useEffect(() => {
     setLoadingOrgs(true);
-    getOrganizationsApi({ limit: 1000 })
-      .then((res) => {
-        console.log("API response:", res.data); // 👈 check this first
-        const orgs =
-          res.data?.organizations || res.data?.data || res.data || [];
-        console.log("Orgs extracted:", orgs); // 👈 should be an array
-        setOrganizations(orgs);
-      })
-      .catch((err) => {
+
+    const fetchAllOrgs = async () => {
+      try {
+        // Fetch page 1 first to get total pages
+        const firstRes = await getOrganizationsApi({ limit: 100, page: 1 });
+        const firstOrgs = firstRes.data?.organizations || [];
+        const totalPages = firstRes.data?.pagination?.totalPages || 1;
+
+        if (totalPages === 1) {
+          setOrganizations(firstOrgs);
+          return;
+        }
+
+        // Fetch remaining pages in parallel
+        const pageRequests = [];
+        for (let page = 2; page <= totalPages; page++) {
+          pageRequests.push(getOrganizationsApi({ limit: 100, page }));
+        }
+
+        const remainingRes = await Promise.all(pageRequests);
+        const remainingOrgs = remainingRes.flatMap(
+          (r) => r.data?.organizations || [],
+        );
+
+        const allOrgs = [...firstOrgs, ...remainingOrgs];
+        console.log(`Total orgs loaded: ${allOrgs.length}`); // should log 290
+        setOrganizations(allOrgs);
+      } catch (err) {
         console.error("Org fetch error:", err);
         setToast({ message: "Failed to load organizations", type: "error" });
-      })
-      .finally(() => setLoadingOrgs(false));
+      } finally {
+        setLoadingOrgs(false);
+      }
+    };
+
+    fetchAllOrgs();
   }, []);
   useEffect(() => {
     GetCountries().then((res) => setCountries(res.data || []));
