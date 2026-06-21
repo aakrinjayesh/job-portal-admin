@@ -14,6 +14,8 @@ import PlanlimitsAdmin from "./pages/PlanlimitsAdmin";
 import AddCompany from "./pages/AddCompany";
 import BulkCompanyUpload from "./pages/BulkCompanyUpload";
 import AdminPostjob from "./pages/AdminPostjob";
+import PayoutsManager from "./pages/PayoutsManager";
+import SeedSocialManager from "./pages/SeedSocialManager";
 
 export default function App() {
   return (
@@ -22,99 +24,20 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/admin/login" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          {/* <Route path="/admin/dashboard" element={<Dashboard />} /> */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminLayout>
-                <Dashboard />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/query"
-            element={
-              <AdminLayout>
-                <QueryManager />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/organizations"
-            element={
-              <AdminLayout>
-                <Organizations />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/organizations/:id"
-            element={
-              <AdminLayout>
-                <OrganizationDetails />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/users/add"
-            element={
-              <AdminLayout>
-                <AdminCreateUser />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/postjob"
-            element={
-              <AdminLayout>
-                <AdminPostjob />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/promocode"
-            element={
-              <AdminLayout>
-                <PromoCodeManager />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/planlimitsadmin"
-            element={
-              <AdminLayout>
-                <PlanlimitsAdmin />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/users/search"
-            element={
-              <AdminLayout>
-                <UserLookup />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/add-company"
-            element={
-              <AdminLayout>
-                <AddCompany />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/bulk-company"
-            element={
-              <AdminLayout>
-                <BulkCompanyUpload />
-              </AdminLayout>
-            }
-          />
+          <Route path="/admin/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
+          <Route path="/admin/query" element={<AdminLayout><QueryManager /></AdminLayout>} />
+          <Route path="/admin/organizations" element={<AdminLayout><Organizations /></AdminLayout>} />
+          <Route path="/admin/organizations/:id" element={<AdminLayout><OrganizationDetails /></AdminLayout>} />
+          <Route path="/admin/users/add" element={<AdminLayout><AdminCreateUser /></AdminLayout>} />
+          <Route path="/admin/postjob" element={<AdminLayout><AdminPostjob /></AdminLayout>} />
+          <Route path="/admin/promocode" element={<AdminLayout><PromoCodeManager /></AdminLayout>} />
+          <Route path="/admin/planlimitsadmin" element={<AdminLayout><PlanlimitsAdmin /></AdminLayout>} />
+          <Route path="/admin/users/search" element={<AdminLayout><UserLookup /></AdminLayout>} />
+          <Route path="/admin/add-company" element={<AdminLayout><AddCompany /></AdminLayout>} />
+          <Route path="/admin/bulk-company" element={<AdminLayout><BulkCompanyUpload /></AdminLayout>} />
+          {/* New pages */}
+          <Route path="/admin/payouts" element={<AdminLayout><PayoutsManager /></AdminLayout>} />
+          <Route path="/admin/seed-social" element={<AdminLayout><SeedSocialManager /></AdminLayout>} />
         </Routes>
       </BrowserRouter>
     </AntApp>

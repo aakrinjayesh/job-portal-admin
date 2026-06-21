@@ -446,3 +446,35 @@ export async function GetVisaTypesByCountry(countryId) {
     throw error;
   }
 }
+
+// ── Finance / Payouts ─────────────────────────────────────────────────────────
+export const listPayoutsApi = (params) =>
+  axiosInstance.get("/finance/payouts", { params });
+
+export const approvePayoutApi = (payoutId, data) =>
+  axiosInstance.post(`/finance/payouts/${payoutId}/approve`, data);
+
+export const rejectPayoutApi = (payoutId, data) =>
+  axiosInstance.post(`/finance/payouts/${payoutId}/reject`, data);
+
+// ── Seed Social / AI Comments ─────────────────────────────────────────────────
+export const getSeedConfigApi = () => axiosInstance.get("/seed/config");
+export const updateSeedConfigApi = (data) => axiosInstance.put("/seed/config", data);
+
+export const listPersonasApi = () => axiosInstance.get("/seed/personas");
+export const createPersonaApi = (data) => axiosInstance.post("/seed/personas", data);
+export const updatePersonaApi = (id, data) => axiosInstance.patch(`/seed/personas/${id}`, data);
+export const deletePersonaApi = (id, hard = false) => axiosInstance.delete(`/seed/personas/${id}${hard ? '?hard=true' : ''}`);
+
+export const listCategoriesApi = () => axiosInstance.get("/seed/categories");
+export const createCategoryApi = (data) => axiosInstance.post("/seed/categories", data);
+export const updateCategoryApi = (id, data) => axiosInstance.patch(`/seed/categories/${id}`, data);
+export const deleteCategoryApi = (id) => axiosInstance.delete(`/seed/categories/${id}`);
+
+export const getSeedStatsApi = () => axiosInstance.get("/seed/stats");
+export const listEngagementsApi = (params) => axiosInstance.get("/seed/engagements", { params });
+export const cancelEngagementApi = (id) => axiosInstance.post(`/seed/engagements/${id}/cancel`);
+export const triggerGenerateApi = () => axiosInstance.post("/seed/generate-now");
+export const triggerPostApi = () => axiosInstance.post("/seed/post-now");
+
+export const purgeSeedDataApi = () => axiosInstance.delete("/seed/purge", { data: { confirm: true } });

@@ -17,6 +17,8 @@ import {
   BellOutlined,
   ArrowLeftOutlined,
   DatabaseOutlined,
+  DollarOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -76,6 +78,8 @@ const AdminLayout = ({ children }) => {
     organizations: ["/admin/organizations"],
     licenses: ["/admin/licenses"],
     query: ["/admin/query"],
+    payouts: ["/admin/payouts"],
+    seedsocial: ["/admin/seed-social"],
   };
 
   /* 🎯 Active menu key */
@@ -118,6 +122,8 @@ const AdminLayout = ({ children }) => {
     organizations: "Organizations",
     licenses: "Licenses",
     query: "SQL Query Manager",
+    payouts: "Instructor Payouts",
+    seedsocial: "AI Comments / Seed Social",
   };
 
   const pageTitle = pageTitleMap[selectedKey] || "Dashboard";
@@ -226,6 +232,8 @@ const AdminLayout = ({ children }) => {
           //     label: "Licenses",
           //   },
           { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
+            { key: "payouts", icon: <DollarOutlined />, label: "Instructor Payouts" },
+            { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
         ]}
       />
 
@@ -450,6 +458,8 @@ const AdminLayout = ({ children }) => {
 
             // { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
+            { key: "payouts", icon: <DollarOutlined />, label: "Instructor Payouts" },
+            { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
           ]}
         />
 
