@@ -19,6 +19,7 @@ import {
   DatabaseOutlined,
   DollarOutlined,
   RobotOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -80,6 +81,7 @@ const AdminLayout = ({ children }) => {
     query: ["/admin/query"],
     payouts: ["/admin/payouts"],
     seedsocial: ["/admin/seed-social"],
+    networkingrec: ["/admin/networking-recommend"],
   };
 
   /* 🎯 Active menu key */
@@ -124,6 +126,7 @@ const AdminLayout = ({ children }) => {
     query: "SQL Query Manager",
     payouts: "Instructor Payouts",
     seedsocial: "AI Comments / Seed Social",
+    networkingrec: "Networking Recommendations",
   };
 
   const pageTitle = pageTitleMap[selectedKey] || "Dashboard";
@@ -234,6 +237,7 @@ const AdminLayout = ({ children }) => {
           { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
             { key: "payouts", icon: <DollarOutlined />, label: "Instructor Payouts" },
             { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
+            { key: "networkingrec", icon: <GlobalOutlined />, label: "Networking Recommend" },
         ]}
       />
 
@@ -460,6 +464,7 @@ const AdminLayout = ({ children }) => {
             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
             { key: "payouts", icon: <DollarOutlined />, label: "Instructor Payouts" },
             { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
+            { key: "networkingrec", icon: <GlobalOutlined />, label: "Networking Recommend" },
           ]}
         />
 

@@ -478,3 +478,16 @@ export const triggerGenerateApi = () => axiosInstance.post("/seed/generate-now")
 export const triggerPostApi = () => axiosInstance.post("/seed/post-now");
 
 export const purgeSeedDataApi = () => axiosInstance.delete("/seed/purge", { data: { confirm: true } });
+
+// ── Networking Recommendations ─────────────────────────────────────────────
+export const getNetworkingPostsApi = (params) =>
+  axiosInstance.get("/networking/posts", { params });
+
+export const getNetworkingPostByIdApi = (postId) =>
+  axiosInstance.get(`/networking/posts/${postId}`);
+
+export const recommendCandidatesApi = (postId) =>
+  axiosInstance.post(`/networking/posts/${postId}/recommend`);
+
+export const notifyCandidatesApi = (postId, data) =>
+  axiosInstance.post(`/networking/posts/${postId}/notify`, data);

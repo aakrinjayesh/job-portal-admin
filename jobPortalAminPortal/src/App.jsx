@@ -16,6 +16,7 @@ import BulkCompanyUpload from "./pages/BulkCompanyUpload";
 import AdminPostjob from "./pages/AdminPostjob";
 import PayoutsManager from "./pages/PayoutsManager";
 import SeedSocialManager from "./pages/SeedSocialManager";
+import NetworkingRecommend from "./pages/NetworkingRecommend";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
           {/* New pages */}
           <Route path="/admin/payouts" element={<AdminLayout><PayoutsManager /></AdminLayout>} />
           <Route path="/admin/seed-social" element={<AdminLayout><SeedSocialManager /></AdminLayout>} />
+          <Route path="/admin/networking-recommend" element={<AdminLayout><NetworkingRecommend /></AdminLayout>} />
         </Routes>
       </BrowserRouter>
     </AntApp>
