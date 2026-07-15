@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -9,10 +9,18 @@ import {
   Select,
   InputNumber,
   Divider,
+  Upload,
   message,
   App,
 } from "antd";
-import { createCompanyApi } from "../api/api";
+import { UploadOutlined } from "@ant-design/icons";
+import {
+  createCompanyApi,
+  getCompaniesApi,
+  getCompanyByIdApi,
+  updateCompanyApi,
+  uploadLogoApi,
+} from "../api/api";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -109,11 +117,131 @@ export default function AddCompany() {
   const [clouds, setClouds] = useState([]);
   // const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const { message } = App.useApp();
 
   //   const [partnerTier, setPartnerTier] = useState("");
   //   const [partnerType, setPartnerType] = useState("");
 
+  useEffect(() => {
+    if (editMode) {
+      loadCompanies();
+    }
+  }, [editMode]);
+
+  const loadCompanies = async () => {
+    try {
+      const res = await getCompaniesApi();
+
+      setCompanies(res.data);
+    } catch (err) {
+      message.error("Failed to load companies");
+    }
+  };
+
+  const handleCompanyChange = async (organizationId) => {
+    // ✅ User clicked Clear
+    if (!organizationId) {
+      setSelectedCompanyId(null);
+
+      form.resetFields();
+
+      setLocations([]);
+      setSpecialties([]);
+      setClouds([]);
+
+      setLogoUrl("");
+      setCoverImageUrl("");
+
+      return;
+    }
+    try {
+      setSelectedCompanyId(organizationId);
+
+      const res = await getCompanyByIdApi(organizationId);
+
+      const { org, company } = res.data;
+
+      form.setFieldsValue({
+        organizationName: org.name,
+        domain: org.domain,
+
+        companyName: company.name,
+        slug: company.slug,
+        tagline: company.tagline,
+        description: company.description,
+        website: company.website,
+        headquarters: company.headquarters,
+        companySize: company.companySize,
+        foundedYear: company.foundedYear,
+
+        partnerTier: company.partnerTier,
+        partnerType: company.partnerType,
+
+        linkedin: company.socialLinks?.linkedin,
+        twitter: company.socialLinks?.twitter,
+        instagram: company.socialLinks?.instagram,
+      });
+
+      setLocations(company.locations || []);
+      setSpecialties(company.specialties || []);
+      setClouds(company.clouds || []);
+      setLogoUrl(company.logoUrl || "");
+      setCoverImageUrl(company.coverImage || "");
+    } catch (err) {
+      message.error("Failed to load company");
+    }
+  };
+  const handleUpload = async (file, type) => {
+    try {
+      if (type === "logo") {
+        setUploadingLogo(true);
+      } else {
+        setUploadingCover(true);
+      }
+
+      const res = await uploadLogoApi(file);
+
+      if (res?.url) {
+        if (type === "logo") {
+          setLogoUrl(res.url);
+        } else {
+          setCoverImageUrl(res.url);
+        }
+
+        message.success("Uploaded successfully");
+      } else {
+        message.error("Upload failed");
+      }
+    } catch {
+      message.error("Upload failed");
+    } finally {
+      setUploadingLogo(false);
+      setUploadingCover(false);
+    }
+
+    return false;
+  };
+
+  const resetForm = () => {
+    form.resetFields();
+
+    setLocations([]);
+    setSpecialties([]);
+    setClouds([]);
+
+    setLogoUrl("");
+    setCoverImageUrl("");
+
+    setSelectedCompanyId(null);
+  };
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -128,6 +256,8 @@ export default function AddCompany() {
           description: values.description,
           website: values.website,
           industry: values.industry,
+          logoUrl,
+          coverImage: coverImageUrl,
           companySize: values.companySize,
           foundedYear: values.foundedYear,
           headquarters: values.headquarters,
@@ -145,23 +275,24 @@ export default function AddCompany() {
         },
       };
 
-      await createCompanyApi(payload);
+      if (editMode) {
+        await updateCompanyApi(selectedCompanyId, payload);
 
-      //   message.success("Company Profile created successfully 🚀");
-      message.success({
-        // ✅ REPLACE old message.success
-        content: "Company Profile created successfully 🚀",
-        duration: 3,
-      });
+        message.success({
+          content: "Company Profile updated successfully 🚀",
+          duration: 3,
+        });
+      } else {
+        await createCompanyApi(payload);
 
-      form.resetFields();
-      setLocations([]);
-      setSpecialties([]);
-      setClouds([]);
-      // setCertifications([]);
-      // } catch (err) {
-      //   message.error(err?.response?.data?.message || "Error creating company");
-      // }
+        message.success({
+          content: "Company Profile created successfully 🚀",
+          duration: 3,
+        });
+      }
+
+      resetForm();
+      setEditMode(false);
     } catch (err) {
       // ✅ Ant Design throws { errorFields } when validation fails
       if (err?.errorFields) {
@@ -178,9 +309,52 @@ export default function AddCompany() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 20,
+        }}
+      >
+        <Button
+          onClick={() => {
+            if (editMode) {
+              resetForm();
+              setEditMode(false);
+            } else {
+              setEditMode(true);
+            }
+          }}
+        >
+          {editMode ? "Cancel Edit" : "Edit Company"}
+        </Button>
+      </div>
       <Form form={form} layout="vertical">
         {/* 🔹 ORGANIZATION */}
         <Card title="Organization Details" style={{ marginBottom: 20 }}>
+          {editMode && (
+            <Form.Item label="Select Organization" style={{ marginBottom: 20 }}>
+              <Select
+                showSearch
+                allowClear
+                placeholder="Search Organization"
+                value={selectedCompanyId}
+                onChange={handleCompanyChange}
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.children ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+              >
+                {companies.map((company) => (
+                  <Option key={company.id} value={company.id}>
+                    {company.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
           <Form.Item
             name="organizationName"
             label="Organization Name"
@@ -201,6 +375,67 @@ export default function AddCompany() {
             ]}
           >
             <Input placeholder="google.com" maxLength={30} showCount />
+          </Form.Item>
+        </Card>
+
+        <Card title="Brand Assets" style={{ marginBottom: 20 }}>
+          <Form.Item
+            label="Cover Image"
+            extra="Recommended size: 1128 × 191 px"
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {coverImageUrl && (
+                <img
+                  src={coverImageUrl}
+                  alt="cover"
+                  style={{
+                    width: 220,
+                    height: 70,
+                    objectFit: "cover",
+                    borderRadius: 6,
+                    border: "1px solid #d9d9d9",
+                  }}
+                />
+              )}
+
+              <Upload
+                beforeUpload={(file) => handleUpload(file, "cover")}
+                showUploadList={false}
+              >
+                <Button icon={<UploadOutlined />} loading={uploadingCover}>
+                  {coverImageUrl ? "Change Cover" : "Upload Cover"}
+                </Button>
+              </Upload>
+            </div>
+          </Form.Item>
+
+          <Divider />
+
+          <Form.Item label="Company Logo" extra="Square PNG/JPG">
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt="logo"
+                  style={{
+                    width: 70,
+                    height: 70,
+                    objectFit: "contain",
+                    border: "1px solid #d9d9d9",
+                    borderRadius: 6,
+                  }}
+                />
+              )}
+
+              <Upload
+                beforeUpload={(file) => handleUpload(file, "logo")}
+                showUploadList={false}
+              >
+                <Button icon={<UploadOutlined />} loading={uploadingLogo}>
+                  {logoUrl ? "Change Logo" : "Upload Logo"}
+                </Button>
+              </Upload>
+            </div>
           </Form.Item>
         </Card>
 
@@ -448,10 +683,10 @@ export default function AddCompany() {
           <Button
             type="primary"
             onClick={handleSubmit}
-            loading={loading} // ✅ ADD
+            loading={loading}
             disabled={loading}
           >
-            Create Company
+            {editMode ? "Update Company" : "Create Company"}
           </Button>
         </div>
       </Form>

@@ -548,6 +548,9 @@ export default function AdminPostjob() {
         const firstOrgs = firstRes.data?.organizations || [];
         const totalPages = firstRes.data?.pagination?.totalPages || 1;
 
+        console.log("Total pages:", totalPages); // ← ADD THIS
+        console.log("First page orgs:", firstOrgs.length); // ← ADD THIS
+
         if (totalPages === 1) {
           setOrganizations(firstOrgs);
           return;

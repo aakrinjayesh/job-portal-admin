@@ -212,6 +212,50 @@ export const uploadCompaniesApi = async (file) => {
   }
 };
 
+// ✅ Get All Companies
+export const getCompaniesApi = async () => {
+  try {
+    const response = await axiosInstance.get("/companies");
+
+    return response.data;
+  } catch (error) {
+    console.error("Get Companies Error:", error);
+    throw error;
+  }
+};
+
+// ✅ Get Company By Id
+export const getCompanyByIdApi = async (organizationId) => {
+  try {
+    const response = await axiosInstance.get(`/companies/${organizationId}`);
+
+    return response.data;
+  } catch (error) {
+    console.error("Get Company Error:", error);
+    throw error;
+  }
+};
+
+// ✅ Update Company
+export const updateCompanyApi = async (organizationId, payload) => {
+  try {
+    const response = await axiosInstance.put(
+      `/companies/${organizationId}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Update Company Error:", error);
+    throw error;
+  }
+};
+
 export async function GetClouds() {
   try {
     const response = await commonAxios.get("/clouds", {
@@ -459,25 +503,36 @@ export const rejectPayoutApi = (payoutId, data) =>
 
 // ── Seed Social / AI Comments ─────────────────────────────────────────────────
 export const getSeedConfigApi = () => axiosInstance.get("/seed/config");
-export const updateSeedConfigApi = (data) => axiosInstance.put("/seed/config", data);
+export const updateSeedConfigApi = (data) =>
+  axiosInstance.put("/seed/config", data);
 
 export const listPersonasApi = () => axiosInstance.get("/seed/personas");
-export const createPersonaApi = (data) => axiosInstance.post("/seed/personas", data);
-export const updatePersonaApi = (id, data) => axiosInstance.patch(`/seed/personas/${id}`, data);
-export const deletePersonaApi = (id, hard = false) => axiosInstance.delete(`/seed/personas/${id}${hard ? '?hard=true' : ''}`);
+export const createPersonaApi = (data) =>
+  axiosInstance.post("/seed/personas", data);
+export const updatePersonaApi = (id, data) =>
+  axiosInstance.patch(`/seed/personas/${id}`, data);
+export const deletePersonaApi = (id, hard = false) =>
+  axiosInstance.delete(`/seed/personas/${id}${hard ? "?hard=true" : ""}`);
 
 export const listCategoriesApi = () => axiosInstance.get("/seed/categories");
-export const createCategoryApi = (data) => axiosInstance.post("/seed/categories", data);
-export const updateCategoryApi = (id, data) => axiosInstance.patch(`/seed/categories/${id}`, data);
-export const deleteCategoryApi = (id) => axiosInstance.delete(`/seed/categories/${id}`);
+export const createCategoryApi = (data) =>
+  axiosInstance.post("/seed/categories", data);
+export const updateCategoryApi = (id, data) =>
+  axiosInstance.patch(`/seed/categories/${id}`, data);
+export const deleteCategoryApi = (id) =>
+  axiosInstance.delete(`/seed/categories/${id}`);
 
 export const getSeedStatsApi = () => axiosInstance.get("/seed/stats");
-export const listEngagementsApi = (params) => axiosInstance.get("/seed/engagements", { params });
-export const cancelEngagementApi = (id) => axiosInstance.post(`/seed/engagements/${id}/cancel`);
-export const triggerGenerateApi = () => axiosInstance.post("/seed/generate-now");
+export const listEngagementsApi = (params) =>
+  axiosInstance.get("/seed/engagements", { params });
+export const cancelEngagementApi = (id) =>
+  axiosInstance.post(`/seed/engagements/${id}/cancel`);
+export const triggerGenerateApi = () =>
+  axiosInstance.post("/seed/generate-now");
 export const triggerPostApi = () => axiosInstance.post("/seed/post-now");
 
-export const purgeSeedDataApi = () => axiosInstance.delete("/seed/purge", { data: { confirm: true } });
+export const purgeSeedDataApi = () =>
+  axiosInstance.delete("/seed/purge", { data: { confirm: true } });
 
 // ── Networking Recommendations ─────────────────────────────────────────────
 export const getNetworkingPostsApi = (params) =>
