@@ -1,42 +1,100 @@
 // src/pages/Organizations.jsx
 import { useEffect, useState } from "react";
 import {
-  Table, Card, Input, Tag, Button, Space,
-  Typography, Avatar, Modal, message, Tooltip,
+  Table,
+  Card,
+  Input,
+  Tag,
+  Button,
+  Space,
+  Typography,
+  Avatar,
+  Modal,
+  message,
+  Tooltip,
 } from "antd";
 import {
-  SearchOutlined, EyeOutlined,
-  DeleteOutlined, BankOutlined,
+  SearchOutlined,
+  EyeOutlined,
+  DeleteOutlined,
+  BankOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import {
-  getOrganizationsApi,
-  deleteOrganizationApi,
-} from "../api/api";
+import { getOrganizationsApi, deleteOrganizationApi } from "../api/api";
 
 const { Title, Text } = Typography;
+
+const STORAGE_KEY = "organizations_table_state";
 
 export default function Organizations() {
   const [orgs, setOrgs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+
+  const savedState = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+  const selectedId = savedState.selectedId;
+
+  const [search, setSearch] = useState(savedState.search || "");
+
+  const [pagination, setPagination] = useState({
+    current: savedState.current || 1,
+    pageSize: savedState.pageSize || 10,
+    total: 0,
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchOrgs(1);
+    fetchOrgs(pagination.current, search, pagination.pageSize);
   }, []);
 
-  const fetchOrgs = async (page = 1, searchVal = search) => {
+  useEffect(() => {
+    if (!loading && selectedId) {
+      setTimeout(() => {
+        const row = document.getElementById(`org-row-${selectedId}`);
+
+        if (row) {
+          row.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+
+        const state = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+        delete state.selectedId;
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }, 100);
+    }
+  }, [loading]);
+
+  const fetchOrgs = async (
+    page = 1,
+    searchVal = search,
+    pageSize = pagination.pageSize,
+  ) => {
     setLoading(true);
+
     try {
       const res = await getOrganizationsApi({
         page,
-        limit: pagination.pageSize,
+        limit: pageSize,
         search: searchVal,
       });
+
       setOrgs(res.data.organizations);
-      setPagination((p) => ({ ...p, total: res.data.pagination.total, current: page }));
+
+      setPagination((prev) => ({
+        ...prev,
+        current: page,
+        pageSize,
+        total: res.data.pagination.total,
+      }));
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          current: page,
+          pageSize,
+          search: searchVal,
+        }),
+      );
     } catch (err) {
       message.error("Failed to load organizations");
     } finally {
@@ -47,14 +105,15 @@ export default function Organizations() {
   const handleDelete = (id, name) => {
     Modal.confirm({
       title: `Delete "${name}"?`,
-      content: "This will permanently delete the organization and all its data.",
+      content:
+        "This will permanently delete the organization and all its data.",
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
         try {
           await deleteOrganizationApi(id);
           message.success("Organization deleted");
-          fetchOrgs(pagination.current);
+          fetchOrgs(pagination.current, search, pagination.pageSize);
         } catch {
           message.error("Failed to delete");
         }
@@ -87,22 +146,25 @@ export default function Organizations() {
       title: "Members",
       dataIndex: "_count",
       key: "members",
-      render: (count) => (
-        <Tag color="blue">{count?.members || 0} members</Tag>
-      ),
+      sorter: (a, b) => (a._count?.members || 0) - (b._count?.members || 0),
+      render: (count) => <Tag color="blue">{count?.members || 0} members</Tag>,
     },
     {
       title: "Jobs",
       dataIndex: "_count",
       key: "jobs",
-      render: (count) => (
-        <Tag color="orange">{count?.jobs || 0} jobs</Tag>
-      ),
+      sorter: (a, b) => (a._count?.jobs || 0) - (b._count?.jobs || 0),
+      render: (count) => <Tag color="orange">{count?.jobs || 0} jobs</Tag>,
     },
     {
       title: "Subscription",
       dataIndex: "subscription",
       key: "subscription",
+      sorter: (a, b) => {
+        const statusA = a.subscription?.status || "";
+        const statusB = b.subscription?.status || "";
+        return statusA.localeCompare(statusB);
+      },
       render: (sub) => {
         if (!sub) return <Tag color="default">No Plan</Tag>;
         const colors = {
@@ -153,7 +215,19 @@ export default function Organizations() {
               ghost
               size="small"
               icon={<EyeOutlined />}
-              onClick={() => navigate(`/admin/organizations/${record.id}`)}
+              onClick={() => {
+                sessionStorage.setItem(
+                  STORAGE_KEY,
+                  JSON.stringify({
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    search,
+                    selectedId: record.id,
+                  }),
+                );
+
+                navigate(`/admin/organizations/${record.id}`);
+              }}
             />
           </Tooltip>
           {/* <Tooltip title="Delete">
@@ -171,9 +245,18 @@ export default function Organizations() {
 
   return (
     <div>
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          marginBottom: 24,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div>
-          <Title level={4} style={{ margin: 0 }}>Organizations</Title>
+          <Title level={4} style={{ margin: 0 }}>
+            Organizations
+          </Title>
           <Text type="secondary">Manage all organizations on the platform</Text>
         </div>
         <Tag color="blue" style={{ fontSize: 14, padding: "4px 12px" }}>
@@ -187,8 +270,11 @@ export default function Organizations() {
           placeholder="Search organizations..."
           value={search}
           onChange={(e) => {
-            setSearch(e.target.value);
-            fetchOrgs(1, e.target.value);
+            const value = e.target.value;
+
+            setSearch(value);
+
+            fetchOrgs(1, value, pagination.pageSize);
           }}
           style={{ marginBottom: 16, maxWidth: 300 }}
           allowClear
@@ -198,11 +284,25 @@ export default function Organizations() {
           columns={columns}
           rowKey="id"
           loading={loading}
+          onRow={(record) => ({
+            id: `org-row-${record.id}`,
+          })}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
             total: pagination.total,
-            onChange: (page) => fetchOrgs(page),
+
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "20", "30"],
+
+            onChange: (page, pageSize) => {
+              fetchOrgs(page, search, pageSize);
+            },
+
+            onShowSizeChange: (_, size) => {
+              fetchOrgs(1, search, size);
+            },
+
             showTotal: (total) => `Total ${total} organizations`,
           }}
         />

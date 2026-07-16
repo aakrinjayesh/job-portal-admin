@@ -119,7 +119,7 @@ function Label({ children, required }) {
   );
 }
 
-function Input({ value, onChange, placeholder, type = "text", disabled }) {
+function Input({ value, onChange, placeholder, type = "text", disabled, min }) {
   return (
     <input
       type={type}
@@ -127,6 +127,7 @@ function Input({ value, onChange, placeholder, type = "text", disabled }) {
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
+      min={min}
       style={{
         width: "100%",
         padding: "9px 12px",
@@ -1988,6 +1989,7 @@ export default function AdminPostjob() {
                 type="date"
                 value={form.applicationDeadline}
                 onChange={set("applicationDeadline")}
+                min={new Date().toISOString().split("T")[0]}
               />
             </Field>
             <Field>

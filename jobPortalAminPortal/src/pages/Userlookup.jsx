@@ -4,13 +4,20 @@ import { lookupUserApi, deleteUserApi } from "../api/api";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function initials(name = "") {
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 function fmtDate(d) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -545,15 +552,25 @@ function DeleteModal({ user, onCancel, onConfirm, loading }) {
             <span style={{ flexShrink: 0 }}>⚠️</span>
             <span>
               This user is a <strong>Company Admin</strong> of{" "}
-              <strong>{user.organizationMember.organization.name}</strong>.
-              The organization will be left without an admin.
+              <strong>{user.organizationMember.organization.name}</strong>. The
+              organization will be left without an admin.
             </span>
           </div>
         )}
 
         <div className="ul-modal-actions">
-          <button className="ul-btn-cancel" onClick={onCancel} disabled={loading}>Cancel</button>
-          <button className="ul-btn-danger" onClick={onConfirm} disabled={loading}>
+          <button
+            className="ul-btn-cancel"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            className="ul-btn-danger"
+            onClick={onConfirm}
+            disabled={loading}
+          >
             {loading ? "Deleting…" : "Yes, delete user"}
           </button>
         </div>
@@ -564,34 +581,50 @@ function DeleteModal({ user, onCancel, onConfirm, loading }) {
 
 // ─── Role / status badge helpers ─────────────────────────────────────────────
 function roleBadge(role) {
-  const map = { admin: "ul-badge-admin", company: "ul-badge-company", candidate: "ul-badge-candidate" };
+  const map = {
+    admin: "ul-badge-admin",
+    company: "ul-badge-company",
+    candidate: "ul-badge-candidate",
+  };
   return <Badge label={role} className={map[role] ?? "ul-badge-neutral"} />;
 }
 
 function subBadge(status) {
-  const map = { ACTIVE: "ul-badge-sub-active", PAST_DUE: "ul-badge-sub-pastdue", CANCELLED: "ul-badge-sub-cancelled" };
+  const map = {
+    ACTIVE: "ul-badge-sub-active",
+    PAST_DUE: "ul-badge-sub-pastdue",
+    CANCELLED: "ul-badge-sub-cancelled",
+  };
   return <Badge label={status} className={map[status] ?? "ul-badge-neutral"} />;
 }
 
 function tierBadge(tier) {
-  const map = { BASIC: "ul-badge-tier-basic", PROFESSIONAL: "ul-badge-tier-pro", ORGANIZATION: "ul-badge-tier-org", ENTERPRISE: "ul-badge-tier-ent" };
+  const map = {
+    BASIC: "ul-badge-tier-basic",
+    PROFESSIONAL: "ul-badge-tier-pro",
+    ORGANIZATION: "ul-badge-tier-org",
+    ENTERPRISE: "ul-badge-tier-ent",
+  };
   return <Badge label={tier} className={map[tier] ?? "ul-badge-neutral"} />;
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function UserLookup() {
-  const [email, setEmail]         = useState("");
-  const [user, setUser]           = useState(null);
-  const [error, setError]         = useState(null);
+  const [email, setEmail] = useState("");
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
   const [searching, setSearching] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [deleting, setDeleting]   = useState(false);
-  const [deleted, setDeleted]     = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(null);
 
   const handleSearch = async () => {
     const q = email.trim().toLowerCase();
     if (!q) return;
-    setUser(null); setError(null); setDeleted(null); setSearching(true);
+    setUser(null);
+    setError(null);
+    setDeleted(null);
+    setSearching(true);
     try {
       const data = await lookupUserApi(q);
       setUser(data.user);
@@ -609,9 +642,12 @@ export default function UserLookup() {
       await deleteUserApi(user.id);
       setDeleted(user.email);
       setUser(null);
+      setEmail("");
       setShowModal(false);
     } catch (err) {
-      setError(err.response?.data?.message ?? "Delete failed. Please try again.");
+      setError(
+        err.response?.data?.message ?? "Delete failed. Please try again.",
+      );
       setShowModal(false);
     } finally {
       setDeleting(false);
@@ -623,32 +659,34 @@ export default function UserLookup() {
       <style>{styles}</style>
       <div className="ul-root">
         <div className="ul-wrap">
-
           {/* Header */}
           <div className="ul-header">
             <p className="ul-header-eyebrow">Admin Panel</p>
             <h1>User Lookup</h1>
-            <p>Search any registered user by email to view their account details or remove their account.</p>
+            <p>
+              Search any registered user by email to view their account details
+              or remove their account.
+            </p>
           </div>
 
           {/* Search */}
           <div className="ul-search-card">
             <label className="ul-search-label">Email address</label>
             <div className="ul-search-row">
-           <input
-  type="email"
-  className="ul-input"
-  value={email}
-  onChange={(e) => {
-    setEmail(e.target.value);
-    if (!e.target.value.trim()) {
-      setError(null);      // ← clear error when input is empty
-      setDeleted(null);    // ← clear success too
-    }
-  }}
-  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-  placeholder="user@example.com"
-/>
+              <input
+                type="email"
+                className="ul-input"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (!e.target.value.trim()) {
+                    setError(null); // ← clear error when input is empty
+                    setDeleted(null); // ← clear success too
+                  }
+                }}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="user@example.com"
+              />
               <button
                 className="ul-search-btn"
                 onClick={handleSearch}
@@ -671,7 +709,9 @@ export default function UserLookup() {
           {deleted && (
             <div className="ul-alert ul-alert-success">
               <div className="ul-alert-icon">✓</div>
-              <span>User <strong>{deleted}</strong> was deleted successfully.</span>
+              <span>
+                User <strong>{deleted}</strong> was deleted successfully.
+              </span>
             </div>
           )}
 
@@ -684,10 +724,11 @@ export default function UserLookup() {
                   <div className="ul-identity-top">
                     {/* Avatar */}
                     <div className="ul-avatar">
-                      {user.profileUrl
-                        ? <img src={user.profileUrl} alt={user.name} />
-                        : initials(user.name)
-                      }
+                      {user.profileUrl ? (
+                        <img src={user.profileUrl} alt={user.name} />
+                      ) : (
+                        initials(user.name)
+                      )}
                     </div>
                     {/* Name / Email / Badges */}
                     <div className="ul-identity-meta">
@@ -697,18 +738,44 @@ export default function UserLookup() {
                         {roleBadge(user.role)}
                         <Badge
                           label={user.isactive ? "Active" : "Inactive"}
-                          className={user.isactive ? "ul-badge-active" : "ul-badge-inactive"}
+                          className={
+                            user.isactive
+                              ? "ul-badge-active"
+                              : "ul-badge-inactive"
+                          }
                         />
                         <Badge
-                          label={user.emailverified ? "Email verified" : "Not verified"}
-                          className={user.emailverified ? "ul-badge-verified" : "ul-badge-unverified"}
+                          label={
+                            user.emailverified
+                              ? "Email verified"
+                              : "Not verified"
+                          }
+                          className={
+                            user.emailverified
+                              ? "ul-badge-verified"
+                              : "ul-badge-unverified"
+                          }
                         />
                       </div>
                     </div>
                     {/* Delete */}
-                    <button className="ul-delete-btn" onClick={() => setShowModal(true)}>
-                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 4h12M5.333 4V2.667A1.333 1.333 0 016.667 1.333h2.666A1.333 1.333 0 0110.667 2.667V4m2 0v9.333A1.333 1.333 0 0111.333 14.667H4.667A1.333 1.333 0 013.333 13.333V4h9.334z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    <button
+                      className="ul-delete-btn"
+                      onClick={() => setShowModal(true)}
+                    >
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 4h12M5.333 4V2.667A1.333 1.333 0 016.667 1.333h2.666A1.333 1.333 0 0110.667 2.667V4m2 0v9.333A1.333 1.333 0 0111.333 14.667H4.667A1.333 1.333 0 013.333 13.333V4h9.334z"
+                          stroke="currentColor"
+                          strokeWidth="1.3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                       Delete
                     </button>
@@ -723,7 +790,10 @@ export default function UserLookup() {
                     <Row label="Phone">{user.phoneNumber}</Row>
                     <Row label="Company">{user.companyName}</Row>
                     <Row label="Notifications">
-                      <Badge label={user.notificationType} className="ul-badge-neutral" />
+                      <Badge
+                        label={user.notificationType}
+                        className="ul-badge-neutral"
+                      />
                     </Row>
                     <Row label="Member since">{fmtDate(user.createdAt)}</Row>
                   </div>
@@ -732,10 +802,16 @@ export default function UserLookup() {
 
               {/* Stats */}
               <div className="ul-stats">
-                <Stat label="Jobs posted"      value={user.stats.jobsPosted} />
-                <Stat label="Applications"     value={user.stats.jobApplications} />
-                <Stat label="Saved candidates" value={user.stats.savedCandidates} />
-                <Stat label="AI tokens used"   value={user.stats.totalAiTokensUsed.toLocaleString("en-IN")} />
+                <Stat label="Jobs posted" value={user.stats.jobsPosted} />
+                <Stat label="Applications" value={user.stats.jobApplications} />
+                <Stat
+                  label="Saved candidates"
+                  value={user.stats.savedCandidates}
+                />
+                <Stat
+                  label="AI tokens used"
+                  value={user.stats.totalAiTokensUsed.toLocaleString("en-IN")}
+                />
               </div>
 
               {/* Candidate Profile */}
@@ -744,22 +820,47 @@ export default function UserLookup() {
                   <SectionLabel title="Candidate profile" />
                   <div className="ul-rows">
                     <Row label="Title">{user.candidateProfile.title}</Row>
-                    <Row label="Experience">{user.candidateProfile.totalExperience}</Row>
-                    <Row label="Location">{user.candidateProfile.currentLocation}</Row>
-                    <Row label="Current CTC">{user.candidateProfile.currentCTC}</Row>
-                    <Row label="Expected CTC">{user.candidateProfile.expectedCTC}</Row>
-                    <Row label="Preferred job types">{user.candidateProfile.preferredJobType?.join(", ")}</Row>
-                    <Row label="Certifications">{user.candidateProfile.certifications?.join(", ")}</Row>
+                    <Row label="Experience">
+                      {user.candidateProfile.totalExperience}
+                    </Row>
+                    <Row label="Location">
+                      {user.candidateProfile.currentLocation}
+                    </Row>
+                    <Row label="Current CTC">
+                      {user.candidateProfile.currentCTC}
+                    </Row>
+                    <Row label="Expected CTC">
+                      {user.candidateProfile.expectedCTC}
+                    </Row>
+                    <Row label="Preferred job types">
+                      {user.candidateProfile.preferredJobType?.join(", ")}
+                    </Row>
+                    <Row label="Certifications">
+                      {user.candidateProfile.certifications?.join(", ")}
+                    </Row>
                     <Row label="Status">{user.candidateProfile.status}</Row>
                     <Row label="Profile verified">
                       <Badge
-                        label={user.candidateProfile.isVerified ? "Verified" : "Not verified"}
-                        className={user.candidateProfile.isVerified ? "ul-badge-verified" : "ul-badge-unverified"}
+                        label={
+                          user.candidateProfile.isVerified
+                            ? "Verified"
+                            : "Not verified"
+                        }
+                        className={
+                          user.candidateProfile.isVerified
+                            ? "ul-badge-verified"
+                            : "ul-badge-unverified"
+                        }
                       />
                     </Row>
                     {user.candidateProfile.linkedInUrl && (
                       <Row label="LinkedIn">
-                        <a className="ul-link" href={user.candidateProfile.linkedInUrl} target="_blank" rel="noreferrer">
+                        <a
+                          className="ul-link"
+                          href={user.candidateProfile.linkedInUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           {user.candidateProfile.linkedInUrl}
                         </a>
                       </Row>
@@ -773,27 +874,64 @@ export default function UserLookup() {
                 <div className="ul-card">
                   <SectionLabel title="Organization" />
                   <div className="ul-rows">
-                    <Row label="Org name">{user.organizationMember.organization?.name}</Row>
+                    <Row label="Org name">
+                      {user.organizationMember.organization?.name}
+                    </Row>
                     <Row label="Org ID">
-                      <code className="ul-code">{user.organizationMember.organization?.id}</code>
+                      <code className="ul-code">
+                        {user.organizationMember.organization?.id}
+                      </code>
                     </Row>
                     <Row label="Member role">
                       <Badge
                         label={user.organizationMember.role}
-                        className={user.organizationMember.role === "COMPANY_ADMIN" ? "ul-badge-amber" : "ul-badge-company"}
+                        className={
+                          user.organizationMember.role === "COMPANY_ADMIN"
+                            ? "ul-badge-amber"
+                            : "ul-badge-company"
+                        }
                       />
                     </Row>
                     <Row label="Permissions">
-                      <Badge label={user.organizationMember.permissions} className="ul-badge-neutral" />
+                      <Badge
+                        label={user.organizationMember.permissions}
+                        className="ul-badge-neutral"
+                      />
                     </Row>
                     {user.organizationMember.organization?.companyProfile && (
                       <>
-                        <Row label="Industry">{user.organizationMember.organization.companyProfile.industry}</Row>
-                        <Row label="Company size">{user.organizationMember.organization.companyProfile.companySize}</Row>
-                        <Row label="Headquarters">{user.organizationMember.organization.companyProfile.headquarters}</Row>
+                        <Row label="Industry">
+                          {
+                            user.organizationMember.organization.companyProfile
+                              .industry
+                          }
+                        </Row>
+                        <Row label="Company size">
+                          {
+                            user.organizationMember.organization.companyProfile
+                              .companySize
+                          }
+                        </Row>
+                        <Row label="Headquarters">
+                          {
+                            user.organizationMember.organization.companyProfile
+                              .headquarters
+                          }
+                        </Row>
                         <Row label="Website">
-                          <a className="ul-link" href={user.organizationMember.organization.companyProfile.website} target="_blank" rel="noreferrer">
-                            {user.organizationMember.organization.companyProfile.website}
+                          <a
+                            className="ul-link"
+                            href={
+                              user.organizationMember.organization
+                                .companyProfile.website
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {
+                              user.organizationMember.organization
+                                .companyProfile.website
+                            }
                           </a>
                         </Row>
                       </>
@@ -803,63 +941,96 @@ export default function UserLookup() {
               )}
 
               {/* Subscription */}
-              {user.organizationMember?.organization?.subscription && (() => {
-                const sub = user.organizationMember.organization.subscription;
-                return (
-                  <div className="ul-card">
-                    <SectionLabel title="Subscription" />
-                    <div className="ul-rows">
-                      <Row label="Status">{subBadge(sub.status)}</Row>
-                      <Row label="Billing cycle">
-                        <Badge label={sub.billingCycle} className="ul-badge-neutral" />
-                      </Row>
-                      <Row label="Auto-renew">
-                        <Badge
-                          label={sub.autoRenew ? "Enabled" : "Disabled"}
-                          className={sub.autoRenew ? "ul-badge-active" : "ul-badge-unverified"}
-                        />
-                      </Row>
-                      <Row label="Period start">{fmtDate(sub.currentPeriodStart)}</Row>
-                      <Row label="Period end">{fmtDate(sub.currentPeriodEnd)}</Row>
-                      <Row label="Next billing">{fmtDate(sub.nextBillingDate)}</Row>
-                    </div>
-                    {sub.licenses?.length > 0 && (
-                      <div className="ul-licenses-wrap">
-                        <div className="ul-divider" style={{ marginBottom: 14 }} />
-                        <span className="ul-licenses-label">Active licenses</span>
-                        {sub.licenses.map((lic) => (
-                          <div key={lic.id} className="ul-license">
-                            <span className="ul-license-name">{lic.plan.name}</span>
-                            <div className="ul-license-meta">
-                              {tierBadge(lic.plan.tier)}
-                              <span className="ul-license-until">until {fmtDate(lic.validUntil)}</span>
-                            </div>
-                          </div>
-                        ))}
+              {user.organizationMember?.organization?.subscription &&
+                (() => {
+                  const sub = user.organizationMember.organization.subscription;
+                  return (
+                    <div className="ul-card">
+                      <SectionLabel title="Subscription" />
+                      <div className="ul-rows">
+                        <Row label="Status">{subBadge(sub.status)}</Row>
+                        <Row label="Billing cycle">
+                          <Badge
+                            label={sub.billingCycle}
+                            className="ul-badge-neutral"
+                          />
+                        </Row>
+                        <Row label="Auto-renew">
+                          <Badge
+                            label={sub.autoRenew ? "Enabled" : "Disabled"}
+                            className={
+                              sub.autoRenew
+                                ? "ul-badge-active"
+                                : "ul-badge-unverified"
+                            }
+                          />
+                        </Row>
+                        <Row label="Period start">
+                          {fmtDate(sub.currentPeriodStart)}
+                        </Row>
+                        <Row label="Period end">
+                          {fmtDate(sub.currentPeriodEnd)}
+                        </Row>
+                        <Row label="Next billing">
+                          {fmtDate(sub.nextBillingDate)}
+                        </Row>
                       </div>
-                    )}
-                  </div>
-                );
-              })()}
+                      {sub.licenses?.length > 0 && (
+                        <div className="ul-licenses-wrap">
+                          <div
+                            className="ul-divider"
+                            style={{ marginBottom: 14 }}
+                          />
+                          <span className="ul-licenses-label">
+                            Active licenses
+                          </span>
+                          {sub.licenses.map((lic) => (
+                            <div key={lic.id} className="ul-license">
+                              <span className="ul-license-name">
+                                {lic.plan.name}
+                              </span>
+                              <div className="ul-license-meta">
+                                {tierBadge(lic.plan.tier)}
+                                <span className="ul-license-until">
+                                  until {fmtDate(lic.validUntil)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
               {/* Sessions */}
               {user.activeSessions?.length > 0 && (
                 <div className="ul-card">
-                  <SectionLabel title={`Active sessions (${user.activeSessions.length})`} />
+                  <SectionLabel
+                    title={`Active sessions (${user.activeSessions.length})`}
+                  />
                   {user.activeSessions.map((s) => (
                     <div key={s.id} className="ul-session">
                       <div className="ul-session-top">
-                        <span className="ul-session-ip">{s.ipAddress ?? "Unknown IP"}</span>
-                        <span className="ul-session-date">{fmtDate(s.createdAt)}</span>
+                        <span className="ul-session-ip">
+                          {s.ipAddress ?? "Unknown IP"}
+                        </span>
+                        <span className="ul-session-date">
+                          {fmtDate(s.createdAt)}
+                        </span>
                       </div>
-                      <p className="ul-session-agent">{s.userAgent ?? "Unknown agent"}</p>
+                      <p className="ul-session-agent">
+                        {s.userAgent ?? "Unknown agent"}
+                      </p>
                     </div>
                   ))}
                 </div>
               )}
 
               {!user.organizationMember && !user.candidateProfile && (
-                <p className="ul-empty">No organization or candidate profile linked to this account.</p>
+                <p className="ul-empty">
+                  No organization or candidate profile linked to this account.
+                </p>
               )}
             </>
           )}
