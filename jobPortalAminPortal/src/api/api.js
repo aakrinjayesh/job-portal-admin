@@ -546,3 +546,16 @@ export const recommendCandidatesApi = (postId) =>
 
 export const notifyCandidatesApi = (postId, data) =>
   axiosInstance.post(`/networking/posts/${postId}/notify`, data);
+
+export const getVisitorAnalyticsApi = async (params) => {
+  try {
+    const response = await axiosInstance.get("/dashboard/visitors", {
+      params,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Visitor Analytics Error:", error);
+    throw error;
+  }
+};

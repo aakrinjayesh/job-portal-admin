@@ -78,6 +78,7 @@ const AdminLayout = ({ children }) => {
     planlimits: ["/admin/planlimitsadmin"],
     organizations: ["/admin/organizations"],
     licenses: ["/admin/licenses"],
+    visitors: ["/admin/visitors"],
     query: ["/admin/query"],
     payouts: ["/admin/payouts"],
     seedsocial: ["/admin/seed-social"],
@@ -123,6 +124,7 @@ const AdminLayout = ({ children }) => {
     planlimits: "Plan Limits",
     organizations: "Organizations",
     licenses: "Licenses",
+    visitors: "Visitor Dashboard",
     query: "SQL Query Manager",
     payouts: "Instructor Payouts",
     seedsocial: "AI Comments / Seed Social",
@@ -205,13 +207,21 @@ const AdminLayout = ({ children }) => {
               },
             ],
           },
-          {key: "adminjobpost", icon: <FileTextOutlined />, label: "Admin Job Post"},
+          {
+            key: "adminjobpost",
+            icon: <FileTextOutlined />,
+            label: "Admin Job Post",
+          },
           {
             key: "promocode",
             icon: <GiftOutlined />,
             label: "Manage PromoCodes",
           },
-          { key: "planlimits", icon: <ControlOutlined />, label: "Plan Limits" },
+          {
+            key: "planlimits",
+            icon: <ControlOutlined />,
+            label: "Plan Limits",
+          },
           {
             key: "company-management",
             icon: <BuildOutlined />,
@@ -229,15 +239,28 @@ const AdminLayout = ({ children }) => {
             icon: <BankOutlined />,
             label: "Organizations",
           },
+          {
+            key: "visitors",
+            icon: <GlobalOutlined />,
+            label: "Visitor Dashboard",
+          },
           //   {
           //     key: "licenses",
           //     icon: <KeyOutlined />,
           //     label: "Licenses",
           //   },
           { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
-            { key: "payouts", icon: <DollarOutlined />, label: "Instructor Payouts" },
-            { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
-            { key: "networkingrec", icon: <GlobalOutlined />, label: "Networking Recommend" },
+          {
+            key: "payouts",
+            icon: <DollarOutlined />,
+            label: "Instructor Payouts",
+          },
+          { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
+          {
+            key: "networkingrec",
+            icon: <GlobalOutlined />,
+            label: "Networking Recommend",
+          },
         ]}
       />
 
@@ -432,21 +455,34 @@ const AdminLayout = ({ children }) => {
                 { key: "users", icon: <UserOutlined />, label: "Delete User" },
               ],
             },
-              {key: "adminjobpost",icon: <FileTextOutlined />, label: "Admin Job Post"},
+            {
+              key: "adminjobpost",
+              icon: <FileTextOutlined />,
+              label: "Admin Job Post",
+            },
             {
               key: "promocode",
               icon: <GiftOutlined />,
               label: "Manage PromoCodes",
             },
-            { key: "planlimits", icon: <ControlOutlined />, label: "Plan Limits" },
+            {
+              key: "planlimits",
+              icon: <ControlOutlined />,
+              label: "Plan Limits",
+            },
             {
               key: "organizations",
               icon: <BankOutlined />,
               label: "Organizations",
             },
             {
+              key: "visitors",
+              icon: <GlobalOutlined />,
+              label: "Visitor Dashboard",
+            },
+            {
               key: "company-management",
-              icon: <BuildOutlined  />,
+              icon: <BuildOutlined />,
               label: "Company Management",
               children: [
                 {
@@ -462,9 +498,21 @@ const AdminLayout = ({ children }) => {
 
             // { key: "licenses", icon: <KeyOutlined />, label: "Licenses" },
             { key: "query", icon: <DatabaseOutlined />, label: "SQL Manager" },
-            { key: "payouts", icon: <DollarOutlined />, label: "Instructor Payouts" },
-            { key: "seedsocial", icon: <RobotOutlined />, label: "AI Comments" },
-            { key: "networkingrec", icon: <GlobalOutlined />, label: "Networking Recommend" },
+            {
+              key: "payouts",
+              icon: <DollarOutlined />,
+              label: "Instructor Payouts",
+            },
+            {
+              key: "seedsocial",
+              icon: <RobotOutlined />,
+              label: "AI Comments",
+            },
+            {
+              key: "networkingrec",
+              icon: <GlobalOutlined />,
+              label: "Networking Recommend",
+            },
           ]}
         />
 
