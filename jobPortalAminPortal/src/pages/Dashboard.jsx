@@ -1,14 +1,28 @@
 // src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import {
-  Row, Col, Card, Statistic, Table,
-  Tag, Typography, Spin, Alert, Grid,
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  Spin,
+  Alert,
+  Grid,
+  Segmented,
+  DatePicker,
 } from "antd";
+import dayjs from "dayjs";
 import {
-  UserOutlined, BankOutlined, FileTextOutlined,
-  AppstoreOutlined, SolutionOutlined,
+  UserOutlined,
+  BankOutlined,
+  FileTextOutlined,
+  AppstoreOutlined,
+  SolutionOutlined,
 } from "@ant-design/icons";
-import { getAdminStatsApi } from "../api/api";
+import { getAdminStatsApi, getUserCountByDateApi } from "../api/api";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -49,6 +63,20 @@ const statCards = [
     color: "#FFF0F6",
     borderColor: "#EB2F96",
   },
+  {
+    key: "adminCreatedUsers",
+    title: "Admin Created",
+    icon: <UserOutlined style={{ fontSize: 22, color: "#13C2C2" }} />,
+    color: "#E6FFFB",
+    borderColor: "#13C2C2",
+  },
+  {
+    key: "directUsers",
+    title: "Self Registered",
+    icon: <UserOutlined style={{ fontSize: 22, color: "#F5222D" }} />,
+    color: "#FFF1F0",
+    borderColor: "#F5222D",
+  },
 ];
 
 const Dashboard = () => {
@@ -57,6 +85,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const screens = useBreakpoint();
+  const [sourceFilter, setSourceFilter] = useState("all"); // all | admin | direct
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [dateStats, setDateStats] = useState(null);
+  const [dateLoading, setDateLoading] = useState(false);
 
   const isMobile = !screens.sm;
   const isTablet = screens.sm && !screens.lg;
@@ -78,16 +110,37 @@ const Dashboard = () => {
     }
   };
 
+  const handleDateChange = async (date) => {
+    setSelectedDate(date);
+    if (!date) {
+      setDateStats(null);
+      return;
+    }
+    setDateLoading(true);
+    try {
+      const formatted = date.format("YYYY-MM-DD");
+      const res = await getUserCountByDateApi(formatted);
+      setDateStats(res);
+    } catch (err) {
+      console.error("Failed to fetch date stats", err);
+      setDateStats(null);
+    } finally {
+      setDateLoading(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "60vh",
-        flexDirection: "column",
-        gap: 16,
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
         <Spin size="large" />
         <Text type="secondary">Loading dashboard...</Text>
       </div>
@@ -95,7 +148,9 @@ const Dashboard = () => {
   }
 
   if (error) {
-    return <Alert type="error" message={error} showIcon style={{ margin: 16 }} />;
+    return (
+      <Alert type="error" message={error} showIcon style={{ margin: 16 }} />
+    );
   }
 
   // Mobile: show only key columns
@@ -105,12 +160,22 @@ const Dashboard = () => {
       key: "user",
       render: (_, record) => (
         <div>
-          <Text strong style={{ fontSize: 13 }}>{record.name}</Text>
+          <Text strong style={{ fontSize: 13 }}>
+            {record.name}
+          </Text>
           <br />
-          <Text type="secondary" style={{ fontSize: 11 }}>{record.email}</Text>
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            {record.email}
+          </Text>
           <br />
           <Tag
-            color={record.role === "candidate" ? "blue" : record.role === "company" ? "green" : "purple"}
+            color={
+              record.role === "candidate"
+                ? "blue"
+                : record.role === "company"
+                  ? "green"
+                  : "purple"
+            }
             style={{ marginTop: 4, fontSize: 10 }}
           >
             {record.role.toUpperCase()}
@@ -120,6 +185,12 @@ const Dashboard = () => {
             style={{ marginTop: 4, fontSize: 10 }}
           >
             {record.emailverified ? "Verified" : "Pending"}
+          </Tag>
+          <Tag
+            color={record.source === "ADMIN" ? "cyan" : "default"}
+            style={{ marginTop: 4, fontSize: 10 }}
+          >
+            {record.source === "ADMIN" ? "Admin" : "Self"}
           </Tag>
         </div>
       ),
@@ -159,7 +230,15 @@ const Dashboard = () => {
       key: "role",
       width: 110,
       render: (role) => (
-        <Tag color={role === "candidate" ? "blue" : role === "company" ? "green" : "purple"}>
+        <Tag
+          color={
+            role === "candidate"
+              ? "blue"
+              : role === "company"
+                ? "green"
+                : "purple"
+          }
+        >
           {role.toUpperCase()}
         </Tag>
       ),
@@ -172,6 +251,17 @@ const Dashboard = () => {
       render: (verified) => (
         <Tag color={verified ? "success" : "warning"}>
           {verified ? "Verified" : "Pending"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Source",
+      dataIndex: "source",
+      key: "source",
+      width: 100,
+      render: (source) => (
+        <Tag color={source === "ADMIN" ? "cyan" : "default"}>
+          {source === "ADMIN" ? "Admin" : "Self"}
         </Tag>
       ),
     },
@@ -189,13 +279,18 @@ const Dashboard = () => {
     },
   ];
 
-  const companyUsers = recentUsers.filter(
-  (user) => user.role === "company"
-);
+  //   const companyUsers = recentUsers.filter(
+  //   (user) => user.role === "company"
+  // );
 
+  const companyUsers = recentUsers.filter((user) => {
+    if (user.role !== "company") return false;
+    if (sourceFilter === "admin") return user.source === "ADMIN";
+    if (sourceFilter === "direct") return user.source === "DIRECT";
+    return true;
+  });
   return (
     <div style={{ padding: isMobile ? "4px 0" : "8px 0" }}>
-
       {/* Page Title */}
       <div style={{ marginBottom: isMobile ? 16 : 24 }}>
         <Title level={isMobile ? 5 : 4} style={{ margin: 0 }}>
@@ -207,20 +302,20 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-     <Row
-  gutter={[16, 16]}
-  style={{ marginBottom: isMobile ? 16 : 32 }}
-  justify="space-between"
->
-  {statCards.map((card) => (
-    <Col
-      key={card.key}
-      style={{
-        flex: "1 1 18%",   // 👈 makes 5 equal cards (100/5 ≈ 20%)
-        maxWidth: "20%",
-        minWidth: isMobile ? "48%" : "180px",
-      }}
-    >
+      <Row
+        gutter={[16, 16]}
+        style={{ marginBottom: isMobile ? 16 : 32 }}
+        justify="space-between"
+      >
+        {statCards.map((card) => (
+          <Col
+            key={card.key}
+            style={{
+              flex: "1 1 18%", // 👈 makes 5 equal cards (100/5 ≈ 20%)
+              maxWidth: "20%",
+              minWidth: isMobile ? "48%" : "180px",
+            }}
+          >
             <Card
               style={{
                 borderRadius: isMobile ? 8 : 12,
@@ -235,12 +330,14 @@ const Dashboard = () => {
                 },
               }}
             >
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: 19,
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 19,
+                }}
+              >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Text
                     type="secondary"
@@ -266,14 +363,16 @@ const Dashboard = () => {
                 </div>
                 {/* Hide icon on very small screens */}
                 {!isMobile && (
-                  <div style={{
-                    background: "#fff",
-                    borderRadius: 8,
-                    padding: 8,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                    flexShrink: 0,
-                    marginLeft: 8,
-                  }}>
+                  <div
+                    style={{
+                      background: "#fff",
+                      borderRadius: 8,
+                      padding: 8,
+                      boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                      flexShrink: 0,
+                      marginLeft: 8,
+                    }}
+                  >
                     {card.icon}
                   </div>
                 )}
@@ -283,18 +382,126 @@ const Dashboard = () => {
         ))}
       </Row>
 
-      {/* Recent Users Table */}
+      {/* Date-wise Signups */}
       <Card
-        title={
-          <div style={{
+        style={{
+          borderRadius: isMobile ? 8 : 12,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          marginBottom: isMobile ? 16 : 32,
+        }}
+        styles={{ body: { padding: isMobile ? 16 : 24 } }}
+      >
+        <div
+          style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-          }}>
-            <Title level={isMobile ? 5 : 5} style={{ margin: 0, fontSize: isMobile ? 13 : 16 }}>
+            flexWrap: "wrap",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <Title level={5} style={{ margin: 0, fontSize: isMobile ? 13 : 16 }}>
+            Signups by Date
+          </Title>
+          <DatePicker
+            value={selectedDate}
+            onChange={handleDateChange}
+            disabledDate={(current) =>
+              current && current > dayjs().endOf("day")
+            }
+            size={isMobile ? "small" : "middle"}
+          />
+        </div>
+
+        {dateLoading && (
+          <div
+            style={{ display: "flex", justifyContent: "center", padding: 24 }}
+          >
+            <Spin />
+          </div>
+        )}
+
+        {!dateLoading && !selectedDate && (
+          <Text type="secondary">
+            Pick a date to see how many accounts were created.
+          </Text>
+        )}
+
+        {!dateLoading && selectedDate && dateStats && (
+          <Row gutter={[16, 16]}>
+            <Col xs={8}>
+              <Statistic
+                title="Total Signups"
+                value={dateStats.counts.total}
+                valueStyle={{ fontSize: isMobile ? 18 : 24, fontWeight: 700 }}
+              />
+            </Col>
+            <Col xs={8}>
+              <Statistic
+                title="Admin Created"
+                value={dateStats.counts.adminCreated}
+                valueStyle={{
+                  fontSize: isMobile ? 18 : 24,
+                  fontWeight: 700,
+                  color: "#13C2C2",
+                }}
+              />
+            </Col>
+            <Col xs={8}>
+              <Statistic
+                title="Self Registered"
+                value={dateStats.counts.direct}
+                valueStyle={{
+                  fontSize: isMobile ? 18 : 24,
+                  fontWeight: 700,
+                  color: "#F5222D",
+                }}
+              />
+            </Col>
+          </Row>
+        )}
+      </Card>
+
+      {/* Recent Users Table */}
+      <Card
+        title={
+          // <div style={{
+          //   display: "flex",
+          //   justifyContent: "space-between",
+          //   alignItems: "center",
+          // }}>
+          //   <Title level={isMobile ? 5 : 5} style={{ margin: 0, fontSize: isMobile ? 13 : 16 }}>
+          //     Recently Joined Users
+          //   </Title>
+          //   <Tag color="blue">Last 5</Tag>
+          // </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            <Title
+              level={isMobile ? 5 : 5}
+              style={{ margin: 0, fontSize: isMobile ? 13 : 16 }}
+            >
               Recently Joined Users
             </Title>
-            <Tag color="blue">Last 5</Tag>
+            <Segmented
+              size={isMobile ? "small" : "middle"}
+              options={[
+                { label: "All", value: "all" },
+                { label: "Admin", value: "admin" },
+                { label: "Self", value: "direct" },
+              ]}
+              value={sourceFilter}
+              onChange={setSourceFilter}
+            />
           </div>
         }
         style={{
@@ -305,14 +512,14 @@ const Dashboard = () => {
           body: { padding: isMobile ? "0 0 8px 0" : "24px" },
         }}
       >
-      <Table
-  dataSource={companyUsers}
-  columns={isMobile ? mobileColumns : desktopColumns}
-  rowKey="id"
-  pagination={false}
-  size={isMobile ? "small" : "middle"}
-  scroll={isMobile ? {} : { x: 600 }}
-/>
+        <Table
+          dataSource={companyUsers}
+          columns={isMobile ? mobileColumns : desktopColumns}
+          rowKey="id"
+          pagination={false}
+          size={isMobile ? "small" : "middle"}
+          scroll={isMobile ? {} : { x: 600 }}
+        />
       </Card>
     </div>
   );

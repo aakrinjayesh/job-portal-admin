@@ -27,6 +27,18 @@ export async function getAdminStatsApi() {
   }
 }
 
+export async function getUserCountByDateApi(date) {
+  try {
+    const response = await axiosInstance.get("/stats/by-date", {
+      params: { date },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching date stats:", error);
+    throw error;
+  }
+}
+
 // src/api/api.js — add this
 export async function executeQueryApi(query) {
   try {
