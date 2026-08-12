@@ -18,6 +18,7 @@ import PayoutsManager from "./pages/PayoutsManager";
 import SeedSocialManager from "./pages/SeedSocialManager";
 import NetworkingRecommend from "./pages/NetworkingRecommend";
 import VisitorDashboard from "./pages/VisitorDashboard";
+import InviteEvent from "./pages/InviteEvent";
 
 export default function App() {
   return (
@@ -144,6 +145,14 @@ export default function App() {
             element={
               <AdminLayout>
                 <VisitorDashboard />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/invite-event"
+            element={
+              <AdminLayout>
+                <InviteEvent />
               </AdminLayout>
             }
           />

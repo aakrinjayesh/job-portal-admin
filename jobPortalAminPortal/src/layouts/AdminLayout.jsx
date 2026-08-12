@@ -20,6 +20,7 @@ import {
   DollarOutlined,
   RobotOutlined,
   GlobalOutlined,
+  MailOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -83,6 +84,7 @@ const AdminLayout = ({ children }) => {
     payouts: ["/admin/payouts"],
     seedsocial: ["/admin/seed-social"],
     networkingrec: ["/admin/networking-recommend"],
+    inviteEvent: ["/admin/invite-event"],
   };
 
   /* 🎯 Active menu key */
@@ -129,6 +131,7 @@ const AdminLayout = ({ children }) => {
     payouts: "Instructor Payouts",
     seedsocial: "AI Comments / Seed Social",
     networkingrec: "Networking Recommendations",
+    inviteEvent: "Invite Event",
   };
 
   const pageTitle = pageTitleMap[selectedKey] || "Dashboard";
@@ -260,6 +263,11 @@ const AdminLayout = ({ children }) => {
             key: "networkingrec",
             icon: <GlobalOutlined />,
             label: "Networking Recommend",
+          },
+          {
+            key: "inviteEvent",
+            icon: <MailOutlined />,
+            label: "Invite Event",
           },
         ]}
       />
@@ -512,6 +520,11 @@ const AdminLayout = ({ children }) => {
               key: "networkingrec",
               icon: <GlobalOutlined />,
               label: "Networking Recommend",
+            },
+            {
+              key: "inviteEvent",
+              icon: <MailOutlined />,
+              label: "Invite Event",
             },
           ]}
         />

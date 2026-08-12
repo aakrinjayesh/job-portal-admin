@@ -559,6 +559,22 @@ export const recommendCandidatesApi = (postId) =>
 export const notifyCandidatesApi = (postId, data) =>
   axiosInstance.post(`/networking/posts/${postId}/notify`, data);
 
+// ── Invite Event (Candidate/Company Batch Mail) ────────────────────────────
+export const getAllEventsApi = (params) =>
+  commonAxios.get("/api/events", { params });
+
+export const fetchCandidateBatchesApi = () =>
+  axiosInstance.post("/batches/fetch/candidates");
+
+export const fetchCompanyBatchesApi = () =>
+  axiosInstance.post("/batches/fetch/companies");
+
+export const listBatchesApi = (params) =>
+  axiosInstance.get("/batches", { params });
+
+export const sendBatchMailApi = (payload) =>
+  axiosInstance.post("/batches/send-mail", payload);
+
 export const getVisitorAnalyticsApi = async (params) => {
   try {
     const response = await axiosInstance.get("/dashboard/visitors", {
