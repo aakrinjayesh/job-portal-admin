@@ -21,13 +21,27 @@ import {
   FileTextOutlined,
   AppstoreOutlined,
   SolutionOutlined,
+  TeamOutlined,
+  UsergroupAddOutlined,
+  ShopOutlined,
+  SafetyCertificateOutlined,
+  SwapOutlined,
+  IdcardOutlined,
 } from "@ant-design/icons";
 import { getAdminStatsApi, getUserCountByDateApi } from "../api/api";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
-const statCards = [
+// Platform-wide totals
+const platformStatCards = [
+  {
+    key: "totalUsers",
+    title: "Total Users",
+    icon: <TeamOutlined style={{ fontSize: 22, color: "#2F54EB" }} />,
+    color: "#F0F5FF",
+    borderColor: "#2F54EB",
+  },
   {
     key: "totalCandidates",
     title: "Total Candidates",
@@ -63,19 +77,55 @@ const statCards = [
     color: "#FFF0F6",
     borderColor: "#EB2F96",
   },
+];
+
+// User acquisition & verification breakdown
+const acquisitionStatCards = [
+  {
+    key: "directUsers",
+    title: "Self-Registered Users",
+    icon: <UsergroupAddOutlined style={{ fontSize: 22, color: "#F5222D" }} />,
+    color: "#FFF1F0",
+    borderColor: "#F5222D",
+  },
   {
     key: "adminCreatedUsers",
-    title: "Admin Created",
-    icon: <UserOutlined style={{ fontSize: 22, color: "#13C2C2" }} />,
+    title: "Admin-Created Users",
+    icon: <IdcardOutlined style={{ fontSize: 22, color: "#13C2C2" }} />,
     color: "#E6FFFB",
     borderColor: "#13C2C2",
   },
   {
-    key: "directUsers",
-    title: "Self Registered",
-    icon: <UserOutlined style={{ fontSize: 22, color: "#F5222D" }} />,
-    color: "#FFF1F0",
-    borderColor: "#F5222D",
+    key: "adminCreatedCompanies",
+    title: "Admin-Created Company Users",
+    icon: <ShopOutlined style={{ fontSize: 22, color: "#FA541C" }} />,
+    color: "#FFF2E8",
+    borderColor: "#FA541C",
+  },
+  {
+    key: "adminConvertedUsers",
+    title: "Admin-Converted Users",
+    icon: <SwapOutlined style={{ fontSize: 22, color: "#FAAD14" }} />,
+    color: "#FFFBE6",
+    borderColor: "#FAAD14",
+  },
+  {
+    key: "directVerifiedCandidates",
+    title: "Self-Verified Candidate Users",
+    icon: (
+      <SafetyCertificateOutlined style={{ fontSize: 22, color: "#389E0D" }} />
+    ),
+    color: "#F6FFED",
+    borderColor: "#389E0D",
+  },
+  {
+    key: "directVerifiedCompanies",
+    title: "Self-Verified Company Users",
+    icon: (
+      <SafetyCertificateOutlined style={{ fontSize: 22, color: "#08979C" }} />
+    ),
+    color: "#E6FFFB",
+    borderColor: "#08979C",
   },
 ];
 
@@ -91,7 +141,6 @@ const Dashboard = () => {
   const [dateLoading, setDateLoading] = useState(false);
 
   const isMobile = !screens.sm;
-  const isTablet = screens.sm && !screens.lg;
 
   useEffect(() => {
     fetchStats();
@@ -289,6 +338,82 @@ const Dashboard = () => {
     if (sourceFilter === "direct") return user.source === "DIRECT";
     return true;
   });
+
+  const renderStatCards = (cards) => (
+    <Row gutter={[16, 16]}>
+      {cards.map((card) => (
+        <Col
+          key={card.key}
+          xs={12}
+          sm={12}
+          md={8}
+          lg={8}
+          xl={4}
+          style={{ minWidth: isMobile ? "48%" : "180px" }}
+        >
+          <Card
+            style={{
+              borderRadius: isMobile ? 8 : 12,
+              borderLeft: `4px solid ${card.borderColor}`,
+              background: card.color,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+              height: "100%",
+            }}
+            styles={{
+              body: {
+                padding: isMobile ? "12px 14px" : "20px 24px",
+              },
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 19,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: isMobile ? 10 : 12,
+                    display: "block",
+                    marginBottom: 4,
+                  }}
+                >
+                  {card.title}
+                </Text>
+                <Statistic
+                  value={stats?.[card.key] ?? 0}
+                  valueStyle={{
+                    fontSize: isMobile ? 20 : 28,
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                />
+              </div>
+              {!isMobile && (
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: 8,
+                    padding: 8,
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                    flexShrink: 0,
+                    marginLeft: 8,
+                  }}
+                >
+                  {card.icon}
+                </div>
+              )}
+            </div>
+          </Card>
+        </Col>
+      ))}
+    </Row>
+  );
+
   return (
     <div style={{ padding: isMobile ? "4px 0" : "8px 0" }}>
       {/* Page Title */}
@@ -301,86 +426,31 @@ const Dashboard = () => {
         </Text>
       </div>
 
-      {/* Stats Cards */}
-      <Row
-        gutter={[16, 16]}
-        style={{ marginBottom: isMobile ? 16 : 32 }}
-        justify="space-between"
-      >
-        {statCards.map((card) => (
-          <Col
-            key={card.key}
-            style={{
-              flex: "1 1 18%", // 👈 makes 5 equal cards (100/5 ≈ 20%)
-              maxWidth: "20%",
-              minWidth: isMobile ? "48%" : "180px",
-            }}
-          >
-            <Card
-              style={{
-                borderRadius: isMobile ? 8 : 12,
-                borderLeft: `4px solid ${card.borderColor}`,
-                background: card.color,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                height: "100%",
-              }}
-              styles={{
-                body: {
-                  padding: isMobile ? "12px 14px" : "20px 24px",
-                },
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  gap: 19,
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    type="secondary"
-                    style={{
-                      fontSize: isMobile ? 10 : 12,
-                      display: "block",
-                      marginBottom: 4,
-                      // whiteSpace: "nowrap",
-                      // overflow: "hidden",
-                      // textOverflow: "ellipsis",
-                    }}
-                  >
-                    {card.title}
-                  </Text>
-                  <Statistic
-                    value={stats?.[card.key] ?? 0}
-                    valueStyle={{
-                      fontSize: isMobile ? 20 : 28,
-                      fontWeight: 700,
-                      lineHeight: 1.2,
-                    }}
-                  />
-                </div>
-                {/* Hide icon on very small screens */}
-                {!isMobile && (
-                  <div
-                    style={{
-                      background: "#fff",
-                      borderRadius: 8,
-                      padding: 8,
-                      boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                      flexShrink: 0,
-                      marginLeft: 8,
-                    }}
-                  >
-                    {card.icon}
-                  </div>
-                )}
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      {/* Platform Totals */}
+      <div style={{ marginBottom: isMobile ? 8 : 12 }}>
+        <Text
+          strong
+          style={{ fontSize: isMobile ? 12 : 14, color: "#8C8C8C" }}
+        >
+          PLATFORM TOTALS
+        </Text>
+      </div>
+      <div style={{ marginBottom: isMobile ? 16 : 28 }}>
+        {renderStatCards(platformStatCards)}
+      </div>
+
+      {/* Acquisition & Verification */}
+      <div style={{ marginBottom: isMobile ? 8 : 12 }}>
+        <Text
+          strong
+          style={{ fontSize: isMobile ? 12 : 14, color: "#8C8C8C" }}
+        >
+          USER ACQUISITION &amp; VERIFICATION
+        </Text>
+      </div>
+      <div style={{ marginBottom: isMobile ? 16 : 32 }}>
+        {renderStatCards(acquisitionStatCards)}
+      </div>
 
       {/* Date-wise Signups */}
       <Card
