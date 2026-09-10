@@ -135,7 +135,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const screens = useBreakpoint();
-  const [sourceFilter, setSourceFilter] = useState("all"); // all | admin | direct
+  const [recentUsersFilter, setRecentUsersFilter] = useState("all"); // all | admin | self | company | candidate
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateStats, setDateStats] = useState(null);
   const [dateLoading, setDateLoading] = useState(false);
@@ -328,15 +328,20 @@ const Dashboard = () => {
     },
   ];
 
-  //   const companyUsers = recentUsers.filter(
-  //   (user) => user.role === "company"
-  // );
-
-  const companyUsers = recentUsers.filter((user) => {
-    if (user.role !== "company") return false;
-    if (sourceFilter === "admin") return user.source === "ADMIN";
-    if (sourceFilter === "direct") return user.source === "DIRECT";
-    return true;
+  // Recently joined users — render all, filter by signup source or role.
+  const filteredRecentUsers = recentUsers.filter((user) => {
+    switch (recentUsersFilter) {
+      case "admin":
+        return user.source === "ADMIN";
+      case "self":
+        return user.source === "DIRECT";
+      case "company":
+        return user.role === "company";
+      case "candidate":
+        return user.role === "candidate";
+      default:
+        return true;
+    }
   });
 
   const renderStatCards = (cards) => (
@@ -567,10 +572,12 @@ const Dashboard = () => {
               options={[
                 { label: "All", value: "all" },
                 { label: "Admin", value: "admin" },
-                { label: "Self", value: "direct" },
+                { label: "Self", value: "self" },
+                { label: "Company", value: "company" },
+                { label: "Candidate", value: "candidate" },
               ]}
-              value={sourceFilter}
-              onChange={setSourceFilter}
+              value={recentUsersFilter}
+              onChange={setRecentUsersFilter}
             />
           </div>
         }
@@ -583,7 +590,7 @@ const Dashboard = () => {
         }}
       >
         <Table
-          dataSource={companyUsers}
+          dataSource={filteredRecentUsers}
           columns={isMobile ? mobileColumns : desktopColumns}
           rowKey="id"
           pagination={false}
