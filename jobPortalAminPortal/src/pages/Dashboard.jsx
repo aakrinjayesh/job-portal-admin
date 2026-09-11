@@ -103,7 +103,7 @@ const candidateStatCards = [
 const companyStatCards = [
   {
     key: "selfRegisteredVerifiedCompanies",
-    title: "Self-Registered Verified Companies",
+    title: "Self-Registered Verified Company Users",
     icon: (
       <SafetyCertificateOutlined style={{ fontSize: 22, color: "#389E0D" }} />
     ),
@@ -119,7 +119,7 @@ const companyStatCards = [
   },
   {
     key: "adminCreatedCompaniesConverted",
-    title: "Admin-Created Companies (Email Verified)",
+    title: "Admin-Created Company Users Who Completed Onboarding",
     icon: <SwapOutlined style={{ fontSize: 22, color: "#FAAD14" }} />,
     color: "#FFFBE6",
     borderColor: "#FAAD14",
