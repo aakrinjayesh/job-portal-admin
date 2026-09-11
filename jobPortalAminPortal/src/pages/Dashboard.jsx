@@ -17,16 +17,18 @@ import {
 import dayjs from "dayjs";
 import {
   UserOutlined,
-  BankOutlined,
   FileTextOutlined,
   AppstoreOutlined,
   SolutionOutlined,
   TeamOutlined,
-  UsergroupAddOutlined,
   ShopOutlined,
   SafetyCertificateOutlined,
   SwapOutlined,
   IdcardOutlined,
+  CheckCircleOutlined,
+  PauseCircleOutlined,
+  FileDoneOutlined,
+  SendOutlined,
 } from "@ant-design/icons";
 import { getAdminStatsApi, getUserCountByDateApi } from "../api/api";
 
@@ -43,32 +45,18 @@ const platformStatCards = [
     borderColor: "#2F54EB",
   },
   {
-    key: "totalCandidates",
-    title: "Total Candidates",
-    icon: <UserOutlined style={{ fontSize: 22, color: "#1677FF" }} />,
-    color: "#E6F4FF",
-    borderColor: "#1677FF",
-  },
-  {
-    key: "totalCompanies",
-    title: "Total Companies",
-    icon: <BankOutlined style={{ fontSize: 22, color: "#52C41A" }} />,
-    color: "#F6FFED",
-    borderColor: "#52C41A",
-  },
-  {
-    key: "totalJobs",
-    title: "Total Jobs",
-    icon: <FileTextOutlined style={{ fontSize: 22, color: "#FA8C16" }} />,
-    color: "#FFF7E6",
-    borderColor: "#FA8C16",
-  },
-  {
     key: "totalOrganizations",
-    title: "Organizations",
+    title: "Total Organizations",
     icon: <AppstoreOutlined style={{ fontSize: 22, color: "#722ED1" }} />,
     color: "#F9F0FF",
     borderColor: "#722ED1",
+  },
+  {
+    key: "totalJobPostings",
+    title: "Total Job Postings",
+    icon: <FileTextOutlined style={{ fontSize: 22, color: "#FA8C16" }} />,
+    color: "#FFF7E6",
+    borderColor: "#FA8C16",
   },
   {
     key: "totalApplications",
@@ -79,39 +67,43 @@ const platformStatCards = [
   },
 ];
 
-// User acquisition & verification breakdown
-const acquisitionStatCards = [
+// Candidate insights — all self-registered (direct) candidates
+const candidateStatCards = [
   {
-    key: "directUsers",
-    title: "Self-Registered Users",
-    icon: <UsergroupAddOutlined style={{ fontSize: 22, color: "#F5222D" }} />,
-    color: "#FFF1F0",
-    borderColor: "#F5222D",
+    key: "selfRegisteredCandidates",
+    title: "Self-Registered Candidates",
+    icon: <UserOutlined style={{ fontSize: 22, color: "#1677FF" }} />,
+    color: "#E6F4FF",
+    borderColor: "#1677FF",
   },
   {
-    key: "adminCreatedUsers",
-    title: "Admin-Created Users",
+    key: "selfRegisteredCandidatesWithProfile",
+    title: "Candidates With Completed Profile",
     icon: <IdcardOutlined style={{ fontSize: 22, color: "#13C2C2" }} />,
     color: "#E6FFFB",
     borderColor: "#13C2C2",
   },
   {
-    key: "adminCreatedCompanies",
-    title: "Admin-Created Company Users",
-    icon: <ShopOutlined style={{ fontSize: 22, color: "#FA541C" }} />,
-    color: "#FFF2E8",
-    borderColor: "#FA541C",
+    key: "activeSelfRegisteredCandidates",
+    title: "Active Candidates",
+    icon: <CheckCircleOutlined style={{ fontSize: 22, color: "#52C41A" }} />,
+    color: "#F6FFED",
+    borderColor: "#52C41A",
   },
   {
-    key: "adminConvertedUsers",
-    title: "Admin-Converted Users",
-    icon: <SwapOutlined style={{ fontSize: 22, color: "#FAAD14" }} />,
-    color: "#FFFBE6",
-    borderColor: "#FAAD14",
+    key: "inactiveSelfRegisteredCandidates",
+    title: "Inactive Candidates",
+    icon: <PauseCircleOutlined style={{ fontSize: 22, color: "#F5222D" }} />,
+    color: "#FFF1F0",
+    borderColor: "#F5222D",
   },
+];
+
+// Company insights — self-registered vs admin-created company users
+const companyStatCards = [
   {
-    key: "directVerifiedCandidates",
-    title: "Self-Verified Candidate Users",
+    key: "selfRegisteredVerifiedCompanies",
+    title: "Self-Registered Verified Companies",
     icon: (
       <SafetyCertificateOutlined style={{ fontSize: 22, color: "#389E0D" }} />
     ),
@@ -119,13 +111,36 @@ const acquisitionStatCards = [
     borderColor: "#389E0D",
   },
   {
-    key: "directVerifiedCompanies",
-    title: "Self-Verified Company Users",
-    icon: (
-      <SafetyCertificateOutlined style={{ fontSize: 22, color: "#08979C" }} />
-    ),
+    key: "adminCreatedCompanyUsers",
+    title: "Admin-Created Company Users",
+    icon: <ShopOutlined style={{ fontSize: 22, color: "#FA541C" }} />,
+    color: "#FFF2E8",
+    borderColor: "#FA541C",
+  },
+  {
+    key: "adminCreatedCompaniesConverted",
+    title: "Admin-Created Companies (Email Verified)",
+    icon: <SwapOutlined style={{ fontSize: 22, color: "#FAAD14" }} />,
+    color: "#FFFBE6",
+    borderColor: "#FAAD14",
+  },
+];
+
+// Job posting insights — split by who posted the job
+const jobStatCards = [
+  {
+    key: "adminCreatedJobPostings",
+    title: "Admin-Posted Jobs",
+    icon: <FileDoneOutlined style={{ fontSize: 22, color: "#13C2C2" }} />,
     color: "#E6FFFB",
-    borderColor: "#08979C",
+    borderColor: "#13C2C2",
+  },
+  {
+    key: "directUserJobPostings",
+    title: "Self-Posted Jobs",
+    icon: <SendOutlined style={{ fontSize: 22, color: "#F5222D" }} />,
+    color: "#FFF1F0",
+    borderColor: "#F5222D",
   },
 ];
 
@@ -135,7 +150,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const screens = useBreakpoint();
-  const [recentUsersFilter, setRecentUsersFilter] = useState("all"); // all | admin | self | company | candidate
+  const [recentUsersFilter, setRecentUsersFilter] = useState("all"); // all | company | candidate
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateStats, setDateStats] = useState(null);
   const [dateLoading, setDateLoading] = useState(false);
@@ -235,12 +250,6 @@ const Dashboard = () => {
           >
             {record.emailverified ? "Verified" : "Pending"}
           </Tag>
-          <Tag
-            color={record.source === "ADMIN" ? "cyan" : "default"}
-            style={{ marginTop: 4, fontSize: 10 }}
-          >
-            {record.source === "ADMIN" ? "Admin" : "Self"}
-          </Tag>
         </div>
       ),
     },
@@ -304,17 +313,6 @@ const Dashboard = () => {
       ),
     },
     {
-      title: "Source",
-      dataIndex: "source",
-      key: "source",
-      width: 100,
-      render: (source) => (
-        <Tag color={source === "ADMIN" ? "cyan" : "default"}>
-          {source === "ADMIN" ? "Admin" : "Self"}
-        </Tag>
-      ),
-    },
-    {
       title: "Joined",
       dataIndex: "createdAt",
       key: "createdAt",
@@ -328,13 +326,9 @@ const Dashboard = () => {
     },
   ];
 
-  // Recently joined users — render all, filter by signup source or role.
+  // Recently self-registered users — render all, optionally filter by role.
   const filteredRecentUsers = recentUsers.filter((user) => {
     switch (recentUsersFilter) {
-      case "admin":
-        return user.source === "ADMIN";
-      case "self":
-        return user.source === "DIRECT";
       case "company":
         return user.role === "company";
       case "candidate":
@@ -444,17 +438,43 @@ const Dashboard = () => {
         {renderStatCards(platformStatCards)}
       </div>
 
-      {/* Acquisition & Verification */}
+      {/* Candidate Insights */}
       <div style={{ marginBottom: isMobile ? 8 : 12 }}>
         <Text
           strong
           style={{ fontSize: isMobile ? 12 : 14, color: "#8C8C8C" }}
         >
-          USER ACQUISITION &amp; VERIFICATION
+          CANDIDATE INSIGHTS
+        </Text>
+      </div>
+      <div style={{ marginBottom: isMobile ? 16 : 28 }}>
+        {renderStatCards(candidateStatCards)}
+      </div>
+
+      {/* Company Insights */}
+      <div style={{ marginBottom: isMobile ? 8 : 12 }}>
+        <Text
+          strong
+          style={{ fontSize: isMobile ? 12 : 14, color: "#8C8C8C" }}
+        >
+          COMPANY INSIGHTS
+        </Text>
+      </div>
+      <div style={{ marginBottom: isMobile ? 16 : 28 }}>
+        {renderStatCards(companyStatCards)}
+      </div>
+
+      {/* Job Posting Sources */}
+      <div style={{ marginBottom: isMobile ? 8 : 12 }}>
+        <Text
+          strong
+          style={{ fontSize: isMobile ? 12 : 14, color: "#8C8C8C" }}
+        >
+          JOB POSTING SOURCES
         </Text>
       </div>
       <div style={{ marginBottom: isMobile ? 16 : 32 }}>
-        {renderStatCards(acquisitionStatCards)}
+        {renderStatCards(jobStatCards)}
       </div>
 
       {/* Date-wise Signups */}
@@ -565,14 +585,12 @@ const Dashboard = () => {
               level={isMobile ? 5 : 5}
               style={{ margin: 0, fontSize: isMobile ? 13 : 16 }}
             >
-              Recently Joined Users
+              Recently Self-Registered Users
             </Title>
             <Segmented
               size={isMobile ? "small" : "middle"}
               options={[
                 { label: "All", value: "all" },
-                { label: "Admin", value: "admin" },
-                { label: "Self", value: "self" },
                 { label: "Company", value: "company" },
                 { label: "Candidate", value: "candidate" },
               ]}
